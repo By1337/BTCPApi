@@ -1,0 +1,5 @@
+name: TcpClient
+version: '${project.version}'
+main: org.by1337.tcpapi.client.Plugin
+api-version: '1.16'
+authors: [ By1337 ]

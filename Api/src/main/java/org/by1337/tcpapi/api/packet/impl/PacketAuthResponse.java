@@ -26,6 +26,11 @@ public class PacketAuthResponse extends Packet {
         byteBuf.writeVarInt(response.ordinal());
         return byteBuf;
     }
+
+    public Response getResponse() {
+        return response;
+    }
+
     public enum Response {
         SUCCESSFULLY,
         FAILED

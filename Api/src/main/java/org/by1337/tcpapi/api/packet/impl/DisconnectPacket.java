@@ -27,6 +27,10 @@ public class DisconnectPacket extends Packet {
         return byteBuf;
     }
 
+    public String getReason() {
+        return reason;
+    }
+
     @Override
     public String toString() {
         return "DisconnectPacket{" +

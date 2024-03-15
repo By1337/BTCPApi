@@ -31,7 +31,6 @@ public class Server {
     private volatile boolean isStopped = true;
     private EventLoopGroup loopGroup;
     private ChannelFuture channelFuture;
-
     private final Map<String, Connection> connections = new ConcurrentHashMap<>();
 
     public Server(int port, String password) {

@@ -57,7 +57,7 @@ public class Main {
 
     public static void isMainThread() {
         if (!instance.ticker.isMainThread()) {
-            throw new IllegalStateException("is not main thread!");
+            throw new IllegalStateException("is not the main thread!");
         }
     }
 
