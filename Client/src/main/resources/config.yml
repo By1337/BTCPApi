@@ -2,3 +2,7 @@ ip: '127.0.0.1'
 port: 8080
 password: 'password'
 current-server-id: 'server-1'
+try-reconnect: false # При отключении от tcp сервера пытаться снова подключится к нему?
+# При отключении от tcp сервера выключать minecraft сервер?
+# Рекомендуется так как отключение от tcp сервера является исключительным событием
+stop-server-on-disconnect: true

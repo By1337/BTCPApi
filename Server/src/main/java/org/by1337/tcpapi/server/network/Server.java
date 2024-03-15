@@ -138,4 +138,12 @@ public class Server {
     public String getPassword() {
         return password;
     }
+
+    public static Logger getLogger() {
+        return logger;
+    }
+
+    public boolean isStopped() {
+        return isStopped;
+    }
 }

@@ -22,18 +22,22 @@ public class UnregisteredConnection extends SimpleChannelInboundHandler<Packet> 
             Server server = Main.getServer();
 
             if (Objects.equals(server.getPassword(), auth.tryDecodePassword(server.getPassword()))) {
+                try {
+                    Channel channel = ctx.channel();
+                    SocketAddress address = channel.remoteAddress();
 
-                Channel channel = ctx.channel();
-                SocketAddress address = channel.remoteAddress();
+                    channel.pipeline().remove("auth");
+                    Connection connection = new Connection(channel, address, auth.getId(), server);
+                    channel.pipeline().addLast("handler", connection);
 
-                channel.pipeline().remove("auth");
-                Connection connection = new Connection(channel, address, auth.getId(), server);
-                channel.pipeline().addLast("handler", connection);
+                    server.registerConnection(connection);
 
-                server.registerConnection(connection);
-
-                connection.sendPacket(new PacketAuthResponse(PacketAuthResponse.Response.SUCCESSFULLY));
-
+                    connection.sendPacket(new PacketAuthResponse(PacketAuthResponse.Response.SUCCESSFULLY));
+                } catch (Throwable t) {
+                    DisconnectPacket packet1 = new DisconnectPacket(t.getLocalizedMessage());
+                    ctx.channel().writeAndFlush(packet1);
+                    ctx.channel().close();
+                }
             } else {
                 DisconnectPacket packet1 = new DisconnectPacket("wrong password!");
                 ctx.channel().writeAndFlush(packet1);

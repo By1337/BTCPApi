@@ -12,18 +12,18 @@ public class Manager {
     private final EventManager eventManager;
     private final Thread mainThread;
 
-    public Manager(Logger logger, String ip, int port, String password, String id) {
-        this(logger, ip, port, password, id, false);
+    public Manager(Logger logger, String ip, int port, String password, String id, EventManager eventManager) {
+        this(logger, ip, port, password, id, false, eventManager);
     }
 
-    public Manager(Logger logger, String ip, int port, String password, String id, boolean debug) {
+    public Manager(Logger logger, String ip, int port, String password, String id, boolean debug, EventManager eventManager) {
+        this.eventManager = eventManager;
         if (instance != null){
             throw new UnsupportedOperationException();
         }
         instance = this;
         mainThread = Thread.currentThread();
         this.logger = logger;
-        eventManager = new EventManager();
         connection = new Connection(ip, port, id, password, logger);
         connection.start(debug);
         connection.authWait(10_000L);
@@ -31,9 +31,11 @@ public class Manager {
             throw new IllegalStateException("connect failed!");
         }
     }
+    public void tick(){
+        connection.tick();
+    }
     public void stop(){
         connection.shutdown();
-        eventManager.clearListeners();
     }
     public static void isMainThread() {
         if (instance.mainThread != Thread.currentThread()) {

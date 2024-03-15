@@ -1,6 +1,7 @@
 package org.by1337.tcpapi.server;
 
 import org.by1337.tcpapi.api.event.EventManager;
+import org.by1337.tcpapi.server.console.TcpConsole;
 import org.by1337.tcpapi.server.logger.LogManager;
 import org.by1337.tcpapi.server.network.Server;
 import org.by1337.tcpapi.server.task.Task;
@@ -13,6 +14,7 @@ public class Main {
     private final EventManager eventManager;
     private final Ticker ticker;
     private final Server server;
+    private final TcpConsole tcpConsole;
 
 
     private Main(int port, String password) {
@@ -22,13 +24,15 @@ public class Main {
     private Main(int port, String password, boolean debug) {
         TimeCounter timeCounter = new TimeCounter();
         instance = this;
+        LogManager.soutHook();
         eventManager = new EventManager();
         ticker = new Ticker();
         server = new Server(port, password);
-        LogManager.soutHook();
+        tcpConsole = new TcpConsole();
         server.start(debug);
         ticker.registerTask(new Task(true, 0, this::tick));
         LogManager.getLogger().info("Done in (" + timeCounter.getTimeFormat() + ")");
+        new Thread(tcpConsole::start).start();
         ticker.start();
     }
 
