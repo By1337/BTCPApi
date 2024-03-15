@@ -3,6 +3,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .console_history
+/addons/
+addons/
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml

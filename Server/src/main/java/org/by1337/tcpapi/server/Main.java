@@ -1,13 +1,17 @@
 package org.by1337.tcpapi.server;
 
 import org.by1337.tcpapi.api.event.EventManager;
+import org.by1337.tcpapi.server.addon.AddonLoader;
 import org.by1337.tcpapi.server.console.TcpConsole;
 import org.by1337.tcpapi.server.logger.LogManager;
 import org.by1337.tcpapi.server.network.Server;
 import org.by1337.tcpapi.server.task.Task;
 import org.by1337.tcpapi.server.task.Ticker;
+import org.by1337.tcpapi.server.util.OptionParser;
 import org.by1337.tcpapi.server.util.TPSCounter;
 import org.by1337.tcpapi.server.util.TimeCounter;
+
+import java.io.File;
 
 public class Main {
     private static Main instance;
@@ -15,7 +19,7 @@ public class Main {
     private final Ticker ticker;
     private final Server server;
     private final TcpConsole tcpConsole;
-
+    private final AddonLoader addonLoader;
 
     private Main(int port, String password) {
         this(port, password, false);
@@ -25,12 +29,19 @@ public class Main {
         TimeCounter timeCounter = new TimeCounter();
         instance = this;
         LogManager.soutHook();
+        File dir = new File("./addons");
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
+        addonLoader = new AddonLoader(LogManager.getLogger(), dir);
         eventManager = new EventManager();
         ticker = new Ticker();
         server = new Server(port, password);
         tcpConsole = new TcpConsole();
+        addonLoader.loadAll();
         server.start(debug);
         ticker.registerTask(new Task(true, 0, this::tick));
+        addonLoader.enableAll();
         LogManager.getLogger().info("Done in (" + timeCounter.getTimeFormat() + ")");
         new Thread(tcpConsole::start).start();
         ticker.start();
@@ -44,6 +55,7 @@ public class Main {
 
     public void stop() {
         ticker.stop();
+        addonLoader.disableAll();
         server.shutdown();
     }
 
@@ -70,8 +82,15 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        new Main(8080, "password", true);
-
+        OptionParser parser = new OptionParser();
+        parser.putIfNotExist("port", "8080");
+        parser.putIfNotExist("pass", "password");
+        parser.putIfNotExist("debug", "true");
+        int port = Integer.parseInt(parser.get("port"));
+        String password = parser.get("pass");
+        boolean debug = Boolean.getBoolean(parser.get("debug"));
+        LogManager.getLogger().info("using: " + parser);
+        new Main(port, password, debug);
     }
 }
 

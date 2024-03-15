@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.by1337.tcpapi</groupId>
     <artifactId>TCPApi</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>${version}</version>
     <packaging>pom</packaging>
     <name>TCPApi</name>
     <modules>
@@ -11,4 +11,9 @@
         <module>Server</module>
         <module>Client</module>
     </modules>
+    <properties>
+       <version>1.0-SNAPSHOT</version>
+       <version123>1.0-SNAPSHOT</version123>
+    </properties>
+
 </project>

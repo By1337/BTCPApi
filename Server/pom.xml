@@ -6,6 +6,7 @@
         <artifactId>TCPApi</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+
     <groupId>org.by1337.tcpapi.server</groupId>
     <artifactId>TcpServer</artifactId>
 
@@ -82,7 +83,7 @@
         <dependency>
             <groupId>org.by1337.tcpapi.api</groupId>
             <artifactId>TCP-Api</artifactId>
-            <version>1.0.0</version>
+            <version>${parent.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

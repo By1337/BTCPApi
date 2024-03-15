@@ -6,7 +6,7 @@
 
     <groupId>org.by1337.tcpapi.client</groupId>
     <artifactId>TcpClient</artifactId>
-    <version>1.0</version>
+    <version>${parent.version}</version>
     <packaging>jar</packaging>
 
     <name>Client</name>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>org.by1337.tcpapi.api</groupId>
             <artifactId>TCP-Api</artifactId>
-            <version>1.0.0</version>
+            <version>${parent.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
