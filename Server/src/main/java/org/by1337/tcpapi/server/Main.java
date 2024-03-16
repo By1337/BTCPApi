@@ -12,6 +12,7 @@ import org.by1337.tcpapi.server.util.TPSCounter;
 import org.by1337.tcpapi.server.util.TimeCounter;
 
 import java.io.File;
+import java.util.Objects;
 
 public class Main {
     private static Main instance;
@@ -82,13 +83,13 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        OptionParser parser = new OptionParser();
-        parser.putIfNotExist("port", "8080");
-        parser.putIfNotExist("pass", "password");
-        parser.putIfNotExist("debug", "true");
-        int port = Integer.parseInt(parser.get("port"));
+        OptionParser parser = new OptionParser(String.join(" ", args));
+        String sPort = parser.get("port");
+        Objects.requireNonNull(sPort, "missing port!");
+        int port = Integer.parseInt(sPort);
         String password = parser.get("pass");
-        boolean debug = Boolean.getBoolean(parser.get("debug"));
+        Objects.requireNonNull(password, "missing pass!");
+        boolean debug = Boolean.parseBoolean(parser.getOrDefault("debug", "false"));
         LogManager.getLogger().info("using: " + parser);
         new Main(port, password, debug);
     }

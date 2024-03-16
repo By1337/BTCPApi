@@ -1,10 +1,13 @@
 package org.by1337.tcpapi.server.console;
 
 
+import org.by1337.tcpapi.api.packet.impl.PacketPingRequest;
 import org.by1337.tcpapi.server.Main;
 import org.by1337.tcpapi.server.command.Command;
 import org.by1337.tcpapi.server.command.CommandException;
+import org.by1337.tcpapi.server.console.impl.PingCommand;
 import org.by1337.tcpapi.server.logger.LogManager;
+import org.by1337.tcpapi.server.network.Connection;
 import org.by1337.tcpapi.server.network.Server;
 import org.by1337.tcpapi.server.util.TimeUtil;
 import org.jline.reader.EndOfFileException;
@@ -15,6 +18,7 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -107,6 +111,7 @@ public class TcpConsole {
                             LogManager.getLogger().info(TimeUtil.getFormat((int) ((System.currentTimeMillis() - startAt) / 1_000)));
                         })
         );
+        commands.addSubCommand(new PingCommand());
     }
 
     public void setStopped(boolean stopped) {

@@ -5,6 +5,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.TimeoutException;
 import org.by1337.tcpapi.api.packet.Packet;
+import org.by1337.tcpapi.api.packet.impl.PacketPingRequest;
+import org.by1337.tcpapi.api.packet.impl.PacketPingResponse;
 import org.by1337.tcpapi.server.Main;
 import org.by1337.tcpapi.server.event.PacketReceivedEvent;
 import org.by1337.tcpapi.server.logger.MarkedLogger;
@@ -39,7 +41,14 @@ public class Connection extends SimpleChannelInboundHandler<Packet> implements C
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Packet packet) {
-        packets.offer(packet);
+        if (packet instanceof PacketPingRequest packetPingRequest) {
+            sendPacket(new PacketPingResponse(
+                    (int) (System.currentTimeMillis() - packetPingRequest.getTime()),
+                    packetPingRequest.getId()
+            ));
+        } else {
+            packets.offer(packet);
+        }
     }
 
     @Override

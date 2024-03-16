@@ -6,10 +6,11 @@
 
     <groupId>org.by1337.tcpapi.client</groupId>
     <artifactId>TcpClient</artifactId>
-    <version>${parent.version}</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
 
     <name>Client</name>
+
     <parent>
         <groupId>org.by1337.tcpapi</groupId>
         <artifactId>TCPApi</artifactId>
@@ -21,8 +22,35 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <distributionManagement>
+        <repository>
+            <id>by1337.space</id>
+            <name>releases</name>
+            <url>https://by1337.space/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>by1337.space</id>
+            <name>snapshots</name>
+            <url>https://by1337.space/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -76,12 +104,12 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <version>4.1.97.Final</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.by1337.tcpapi.api</groupId>
             <artifactId>TCP-Api</artifactId>
-            <version>${parent.version}</version>
+            <version>1.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -100,7 +128,7 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>32.1.2-jre</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
         <!-- tests -->
         <dependency>

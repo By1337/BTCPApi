@@ -19,6 +19,8 @@ import org.by1337.tcpapi.server.Main;
 import org.by1337.tcpapi.server.logger.LogManager;
 import org.by1337.tcpapi.server.logger.MarkedLogger;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -115,6 +117,9 @@ public class Server {
                 connection.sendPacket(packet);
             }
         });
+    }
+    public Collection<Connection> getAllConnections(){
+        return connections.values();
     }
 
     public void disconnect(Connection connection, String reason) {

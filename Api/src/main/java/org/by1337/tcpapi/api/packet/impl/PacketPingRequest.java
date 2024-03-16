@@ -7,40 +7,45 @@ import org.by1337.tcpapi.api.packet.PacketType;
 import java.io.IOException;
 import java.util.Objects;
 
-public class PacketAuthResponse extends Packet {
-    private Response response;
-    public PacketAuthResponse() {
-        super(PacketType.AUTH_RESPONSE);
+public class PacketPingRequest extends Packet {
+    private long time;
+    private int id;
+    public PacketPingRequest() {
+        super(PacketType.PING_REQUEST);
     }
-    public PacketAuthResponse(Response response) {
+
+    public PacketPingRequest(long time, int id) {
         this();
-        this.response = response;
+        this.time = time;
+        this.id = id;
     }
 
     @Override
     public void read(ByteBuffer byteBuf) throws IOException {
-        response = Response.values()[byteBuf.readVarInt()];
+        time = byteBuf.readVarLong();
+        id = byteBuf.readVarInt();
     }
 
     @Override
     public ByteBuffer write(ByteBuffer byteBuf) throws IOException {
-        byteBuf.writeVarInt(response.ordinal());
+        byteBuf.writeVarLong(time);
+        byteBuf.writeVarInt(id);
         return byteBuf;
     }
 
-    public Response getResponse() {
-        return response;
+    public long getTime() {
+        return time;
     }
 
-    public enum Response {
-        SUCCESSFULLY,
-        FAILED
+    public int getId() {
+        return id;
     }
 
     @Override
     public String toString() {
-        return "PacketAuthResponse{" +
-                "response=" + response +
+        return "PacketPingRequest{" +
+                "time=" + time +
+                ", id=" + id +
                 '}';
     }
 
@@ -48,12 +53,12 @@ public class PacketAuthResponse extends Packet {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PacketAuthResponse that = (PacketAuthResponse) o;
-        return response == that.response;
+        PacketPingRequest that = (PacketPingRequest) o;
+        return time == that.time && id == that.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(response);
+        return Objects.hash(time, id);
     }
 }

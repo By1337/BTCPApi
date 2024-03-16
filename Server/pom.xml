@@ -9,6 +9,7 @@
 
     <groupId>org.by1337.tcpapi.server</groupId>
     <artifactId>TcpServer</artifactId>
+    <version>1.0</version>
 
     <properties>
         <java.version>16</java.version>
@@ -83,7 +84,7 @@
         <dependency>
             <groupId>org.by1337.tcpapi.api</groupId>
             <artifactId>TCP-Api</artifactId>
-            <version>${parent.version}</version>
+            <version>1.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -130,5 +131,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>

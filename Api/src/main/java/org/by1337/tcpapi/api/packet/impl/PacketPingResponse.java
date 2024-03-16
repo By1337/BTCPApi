@@ -7,40 +7,45 @@ import org.by1337.tcpapi.api.packet.PacketType;
 import java.io.IOException;
 import java.util.Objects;
 
-public class PacketAuthResponse extends Packet {
-    private Response response;
-    public PacketAuthResponse() {
-        super(PacketType.AUTH_RESPONSE);
+public class PacketPingResponse extends Packet {
+    private int ping;
+    private int id;
+    public PacketPingResponse() {
+        super(PacketType.PING_RESPONSE);
     }
-    public PacketAuthResponse(Response response) {
+
+    public PacketPingResponse(int ping, int id) {
         this();
-        this.response = response;
+        this.ping = ping;
+        this.id = id;
     }
 
     @Override
     public void read(ByteBuffer byteBuf) throws IOException {
-        response = Response.values()[byteBuf.readVarInt()];
+        ping = byteBuf.readVarInt();
+        id = byteBuf.readVarInt();
     }
 
     @Override
     public ByteBuffer write(ByteBuffer byteBuf) throws IOException {
-        byteBuf.writeVarInt(response.ordinal());
+        byteBuf.writeVarInt(ping);
+        byteBuf.writeVarInt(id);
         return byteBuf;
     }
 
-    public Response getResponse() {
-        return response;
+    public int getPing() {
+        return ping;
     }
 
-    public enum Response {
-        SUCCESSFULLY,
-        FAILED
+    public int getId() {
+        return id;
     }
 
     @Override
     public String toString() {
-        return "PacketAuthResponse{" +
-                "response=" + response +
+        return "PacketPingResponse{" +
+                "ping=" + ping +
+                ", id=" + id +
                 '}';
     }
 
@@ -48,12 +53,12 @@ public class PacketAuthResponse extends Packet {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PacketAuthResponse that = (PacketAuthResponse) o;
-        return response == that.response;
+        PacketPingResponse that = (PacketPingResponse) o;
+        return ping == that.ping && id == that.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(response);
+        return Objects.hash(ping, id);
     }
 }

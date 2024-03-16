@@ -9,28 +9,30 @@ import java.util.function.Consumer;
 
 public class LockableList<E> implements Iterable<E> {
     private final List<E> source;
-    private final Queue<Action> actions = new LinkedBlockingQueue <>();
+    private final Queue<Action> actions = new LinkedBlockingQueue<>();
     private boolean locked;
 
     public LockableList(List<E> source) {
         this.source = source;
     }
 
-    public void lock(){
+    public void lock() {
         locked = true;
     }
+
     @SuppressWarnings("unchecked")
-    public void unlock(){
+    public void unlock() {
         locked = false;
         Action action;
-        while ((action = actions.poll()) != null){
-            switch (action.type){
+        while ((action = actions.poll()) != null) {
+            switch (action.type) {
                 case ADD -> source.add((E) action.object);
                 case CLEAR -> source.clear();
                 case REMOVE -> source.remove(action.object);
             }
         }
     }
+
     public LockableList() {
         source = new ArrayList<>();
     }

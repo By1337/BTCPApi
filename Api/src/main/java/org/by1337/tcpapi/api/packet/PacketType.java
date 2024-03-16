@@ -16,6 +16,8 @@ public class PacketType<T extends Packet> {
     public static final PacketType<PacketAuth> AUTH = new PacketType<>("auth", PacketAuth::new);
     public static final PacketType<DisconnectPacket> DISCONNECT = new PacketType<>("disconnect", DisconnectPacket::new);
     public static final PacketType<PacketAuthResponse> AUTH_RESPONSE = new PacketType<>("auth_response", PacketAuthResponse::new);
+    public static final PacketType<PacketPingRequest> PING_REQUEST = new PacketType<>("ping_request", PacketPingRequest::new);
+    public static final PacketType<PacketPingResponse> PING_RESPONSE = new PacketType<>("ping_response", PacketPingResponse::new);
 
     private final Supplier<T> suppler;
     private final int id;

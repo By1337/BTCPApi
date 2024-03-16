@@ -16,6 +16,8 @@ import org.by1337.tcpapi.api.codec.Varint21FrameDecoder;
 import org.by1337.tcpapi.api.codec.Varint21LengthFieldPrepender;
 import org.by1337.tcpapi.api.packet.Packet;
 import org.by1337.tcpapi.api.packet.impl.DisconnectPacket;
+import org.by1337.tcpapi.api.packet.impl.PacketPingRequest;
+import org.by1337.tcpapi.api.packet.impl.PacketPingResponse;
 import org.by1337.tcpapi.client.Manager;
 import org.by1337.tcpapi.client.event.AsyncDisconnectEvent;
 import org.by1337.tcpapi.client.event.AsyncPacketReceivedEvent;
@@ -153,18 +155,24 @@ public class Connection extends SimpleChannelInboundHandler<Packet> {
     protected void channelRead0(ChannelHandlerContext ctx, Packet packet) throws Exception {
         if (packet instanceof DisconnectPacket disconnectPacket) {
             disconnect(disconnectPacket.getReason());
+        } else if (packet instanceof PacketPingRequest packetPingRequest) {
+            sendPacket(new PacketPingResponse(
+                    (int) (System.currentTimeMillis() - packetPingRequest.getTime()),
+                    packetPingRequest.getId()
+            ));
         } else {
             var event = new AsyncPacketReceivedEvent(this, packet);
             Manager.getEventManager().callEvent(event);
-            if (!event.isCanceled()){
+            if (!event.isCanceled()) {
                 packets.offer(packet);
             }
         }
     }
-    public void tick(){
+
+    public void tick() {
         Manager.isMainThread();
         Packet packet;
-        while ((packet = packets.poll()) != null){
+        while ((packet = packets.poll()) != null) {
             Manager.getEventManager().callEvent(new PacketReceivedEvent(this, packet));
         }
     }

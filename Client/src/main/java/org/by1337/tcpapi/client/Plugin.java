@@ -1,6 +1,7 @@
 package org.by1337.tcpapi.client;
 
 import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.by1337.blib.configuration.YamlConfig;
@@ -22,7 +23,6 @@ public final class Plugin extends JavaPlugin implements EventListener {
     private String password;
     private String serverId;
     private int port;
-    private BukkitTask task;
     private boolean isStopped;
 
     @Override
@@ -42,6 +42,7 @@ public final class Plugin extends JavaPlugin implements EventListener {
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "failed to enable", e);
             Bukkit.getServer().shutdown();
+            return;
         }
         eventManager = new EventManager();
         eventManager.registerListener(this);
@@ -55,8 +56,7 @@ public final class Plugin extends JavaPlugin implements EventListener {
     @Nullable
     private Exception tryConnect() {
         try {
-            Manager manager = new Manager(getLogger(), ip, port, password, serverId, eventManager);
-            task = Bukkit.getScheduler().runTaskTimer(this, manager::tick, 0, 1);
+            Manager manager = new Manager(getLogger(), ip, port, password, serverId, true, eventManager);
         } catch (Exception e) {
             return e;
         }
@@ -81,16 +81,19 @@ public final class Plugin extends JavaPlugin implements EventListener {
     @Override
     public void onEvent(Event event) {
         if (event instanceof AsyncDisconnectEvent) {
-            if (task != null){
-                task.cancel();
-                task = null;
-            }
             onDisconnect();
         }
     }
 
     @Override
     public void onEnable() {
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            var manager = Manager.getInstance();
+            if (manager != null) {
+                manager.tick();
+            }
+        }, 0, 1);
+
     }
 
     @Override

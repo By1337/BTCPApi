@@ -5,6 +5,7 @@ import org.by1337.tcpapi.api.packet.Packet;
 import org.by1337.tcpapi.api.packet.PacketType;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class DisconnectPacket extends Packet {
     private String reason;
@@ -36,5 +37,18 @@ public class DisconnectPacket extends Packet {
         return "DisconnectPacket{" +
                 "reason='" + reason + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DisconnectPacket that = (DisconnectPacket) o;
+        return Objects.equals(reason, that.reason);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(reason);
     }
 }
