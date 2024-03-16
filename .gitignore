@@ -40,3 +40,4 @@ build/
 .DS_Store
 /.idea/
 /logs/
+/Server/logs/

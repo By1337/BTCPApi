@@ -30,6 +30,7 @@ public class Task {
     }
 
     public void tick() {
+        if (canceled) return;
         if (delay == 0 || currentTick % delay == 0) {
             try {
                 runnable.run();

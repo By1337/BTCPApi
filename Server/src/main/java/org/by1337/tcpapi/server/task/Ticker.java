@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 public class Ticker {
     private static final Logger LOGGER = LogManager.getLogger();
     public static final int TPS = 60;
-    private final int TICK_TIME_MILS = 1000 / TPS;
+    public final int TICK_TIME_MILS = 1000 / TPS;
     private final Thread mainThread;
     private long nextTick;
     private long lastOverloadTime;
@@ -24,6 +24,10 @@ public class Ticker {
 
     public Ticker() {
         mainThread = Thread.currentThread();
+        tpsCounter = new TPSCounter();
+    }
+    public Ticker(Thread thread) {
+        mainThread = thread;
         tpsCounter = new TPSCounter();
     }
 

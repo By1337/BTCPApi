@@ -56,8 +56,11 @@ public class Main {
 
     public void stop() {
         ticker.stop();
+        tcpConsole.setStopped(true);
         addonLoader.disableAll();
+        addonLoader.unloadAll();
         server.shutdown();
+        System.exit(0);
     }
 
     public static Main getInstance() {
@@ -76,6 +79,14 @@ public class Main {
         if (!instance.ticker.isMainThread()) {
             throw new IllegalStateException("is not the main thread!");
         }
+    }
+
+    public static TcpConsole getTcpConsole() {
+        return instance.tcpConsole;
+    }
+
+    public static AddonLoader getAddonLoader() {
+        return instance.addonLoader;
     }
 
     public static Server getServer() {

@@ -91,6 +91,10 @@
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
         </repository>
+        <repository>
+            <id>by1337</id>
+            <url>https://by1337.space/repository/maven-releases/</url>
+        </repository>
     </repositories>
 
     <dependencies>
