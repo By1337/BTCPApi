@@ -10,17 +10,17 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
+import org.by1337.tcpapi.api.PacketFlow;
 import org.by1337.tcpapi.api.codec.PacketDecoder;
 import org.by1337.tcpapi.api.codec.PacketEncoder;
 import org.by1337.tcpapi.api.codec.Varint21FrameDecoder;
 import org.by1337.tcpapi.api.codec.Varint21LengthFieldPrepender;
 import org.by1337.tcpapi.api.packet.Packet;
-import org.by1337.tcpapi.server.Main;
+import org.by1337.tcpapi.server.ServerManager;
 import org.by1337.tcpapi.server.logger.LogManager;
 import org.by1337.tcpapi.server.logger.MarkedLogger;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -45,7 +45,7 @@ public class Server {
     }
 
     public void start(boolean debug) {
-        if (!isStopped){
+        if (!isStopped) {
             throw new IllegalStateException("server already started!");
         }
         isStopped = false;
@@ -76,9 +76,9 @@ public class Server {
                                 }
                                 channel.pipeline()
                                         .addLast("splitter", new Varint21FrameDecoder())
-                                        .addLast("decoder", new PacketDecoder(debug, new MarkedLogger("PACKET_RECEIVED", PacketDecoder.class)))
+                                        .addLast("decoder", new PacketDecoder(debug, new MarkedLogger("PACKET_RECEIVED", PacketDecoder.class), PacketFlow.SERVER_BOUND))
                                         .addLast("prepender", new Varint21LengthFieldPrepender())
-                                        .addLast("encoder", new PacketEncoder(debug, new MarkedLogger("PACKET_SENT", PacketEncoder.class)))
+                                        .addLast("encoder", new PacketEncoder(debug, new MarkedLogger("PACKET_SENT", PacketEncoder.class), PacketFlow.CLIENT_BOUND))
                                         .addLast("auth", new UnregisteredConnection());
                             }
                         }
@@ -104,13 +104,16 @@ public class Server {
             loopGroup.shutdownGracefully();
         }
     }
-    public void tick(){
-        Main.isMainThread();
+
+    public void tick() {
+        ServerManager.isMainThread();
         connections.values().forEach(Connection::tick);
     }
+
     public void sendAll(Packet packet) {
         connections.values().forEach(c -> c.sendPacket(packet));
     }
+
     public void sendAll(Packet packet, Connection except) {
         connections.values().forEach(connection -> {
             if (connection != except) {
@@ -118,7 +121,8 @@ public class Server {
             }
         });
     }
-    public Collection<Connection> getAllConnections(){
+
+    public Collection<Connection> getAllConnections() {
         return connections.values();
     }
 

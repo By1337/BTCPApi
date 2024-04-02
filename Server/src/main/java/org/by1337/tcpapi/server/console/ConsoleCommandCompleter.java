@@ -1,7 +1,7 @@
 package org.by1337.tcpapi.server.console;
 
 
-import org.by1337.tcpapi.server.Main;
+import org.by1337.tcpapi.server.ServerManager;
 import org.by1337.tcpapi.server.command.Command;
 import org.by1337.tcpapi.server.network.Server;
 import org.jline.reader.Candidate;
@@ -21,7 +21,7 @@ public class ConsoleCommandCompleter implements Completer {
     @Override
     public void complete(LineReader lineReader, ParsedLine parsedLine, List<Candidate> list) {
         String[] args = parsedLine.line().split(" ");
-        for (String s : command.getTabCompleter(Main.getServer(), args)) {
+        for (String s : command.getTabCompleter(ServerManager.getServer(), args)) {
             list.add(new Candidate(s));
         }
     }

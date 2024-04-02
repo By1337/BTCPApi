@@ -1,7 +1,7 @@
 package org.by1337.tcpapi.server.task;
 
 import org.by1337.tcpapi.api.util.LockableList;
-import org.by1337.tcpapi.server.Main;
+import org.by1337.tcpapi.server.ServerManager;
 import org.by1337.tcpapi.server.logger.LogManager;
 import org.by1337.tcpapi.server.util.CrashReport;
 import org.by1337.tcpapi.server.util.TPSCounter;
@@ -12,8 +12,8 @@ import java.util.logging.Logger;
 
 public class Ticker {
     private static final Logger LOGGER = LogManager.getLogger();
-    public static final int TPS = 60;
-    public final int TICK_TIME_MILS = 1000 / TPS;
+    public static final int TPS = 40;
+    public static final int TICK_TIME_MILS = 1000 / TPS;
     private final Thread mainThread;
     private long nextTick;
     private long lastOverloadTime;
@@ -75,7 +75,7 @@ public class Ticker {
         } catch (Throwable throwable) {
             new CrashReport("", throwable).saveAndPrint();
             stopped = true;
-            Main.getInstance().stop();
+            ServerManager.getInstance().stop();
         }
     }
 

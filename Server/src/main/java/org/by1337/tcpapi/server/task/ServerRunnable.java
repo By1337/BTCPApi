@@ -1,7 +1,7 @@
 package org.by1337.tcpapi.server.task;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import org.by1337.tcpapi.server.Main;
+import org.by1337.tcpapi.server.ServerManager;
 
 public abstract class ServerRunnable implements Runnable {
     private Task task;
@@ -12,7 +12,7 @@ public abstract class ServerRunnable implements Runnable {
     }
 
     public ServerRunnable() {
-        ticker = Main.getTicker();
+        ticker = ServerManager.getTicker();
     }
 
     @CanIgnoreReturnValue

@@ -4,11 +4,12 @@ package org.by1337.tcpapi.server.logger;
 import org.by1337.tcpapi.server.util.ColoredConsoleOutput;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.logging.*;
 
 public class LogManager {
-    private static final LogManager instance = new LogManager();
+    public static final LogManager instance = new LogManager();
     private final Logger logger = Logger.getLogger("main");
 
     private LogManager() {
@@ -33,14 +34,18 @@ public class LogManager {
 
             FileHandler fileHandler = new FileHandler("logs/latest.log");
             fileHandler.setFormatter(getFormatter());
+            fileHandler.setEncoding(StandardCharsets.UTF_8.name());
             logger.addHandler(fileHandler);
 
             ConsoleHandler consoleHandler = new ConsoleHandler();
             consoleHandler.setFormatter(getColoredFormatter());
+
+            consoleHandler.setEncoding(StandardCharsets.UTF_8.name());
             logger.addHandler(consoleHandler);
+
+
             logger.setUseParentHandlers(false);
 
-            logger.addHandler(fileHandler);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -136,8 +141,8 @@ public class LogManager {
         oldOut = System.out;
         oldErr = System.err;
 
-        System.setOut(new PrintStream(new SoutHook(false), true));
-        System.setErr(new PrintStream(new SoutHook(true), true));
+        System.setOut(new PrintStream(new SoutHook(false), true, StandardCharsets.UTF_8));
+        System.setErr(new PrintStream(new SoutHook(true), true, StandardCharsets.UTF_8));
         hooked = true;
     }
 

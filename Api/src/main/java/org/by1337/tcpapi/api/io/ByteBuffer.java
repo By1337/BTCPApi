@@ -17,7 +17,12 @@ import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class ByteBuffer extends ByteBuf {
     private final ByteBuf source;
@@ -125,6 +130,29 @@ public class ByteBuffer extends ByteBuf {
             this.writeBytes(var3);
             return this;
         }
+    }
+
+    public <T> void writeList(Collection<T> list, BiConsumer<ByteBuffer, T> consumer) {
+        writeVarInt(list.size());
+        for (T t : list) {
+            consumer.accept(this, t);
+        }
+    }
+
+    public <T> List<T> readList(Function<ByteBuffer, T> function) {
+        int size = readVarInt();
+        List<T> list = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            list.add(function.apply(this));
+        }
+        return list;
+    }
+    public void writeStringList(Collection<String> list) {
+        writeList(list, (ByteBuffer::writeUtf));
+    }
+
+    public List<String> readStringList() {
+        return readList(ByteBuffer::readUtf);
     }
 
     /**
@@ -1641,7 +1669,7 @@ public class ByteBuffer extends ByteBuf {
      */
     @Override
     public float readFloat() {
-        return source.readFloat();
+        return Float.intBitsToFloat(readVarInt());
     }
 
     /**
@@ -1652,7 +1680,7 @@ public class ByteBuffer extends ByteBuf {
      */
     @Override
     public double readDouble() {
-        return source.readDouble();
+        return Double.longBitsToDouble(readVarLong());
     }
 
     /**
@@ -2045,7 +2073,8 @@ public class ByteBuffer extends ByteBuf {
      */
     @Override
     public ByteBuf writeFloat(float value) {
-        return source.writeFloat(value);
+        writeVarInt(Float.floatToRawIntBits(value));
+        return source;
     }
 
     /**
@@ -2059,7 +2088,8 @@ public class ByteBuffer extends ByteBuf {
      */
     @Override
     public ByteBuf writeDouble(double value) {
-        return source.writeDouble(value);
+        writeVarLong((Double.doubleToRawLongBits(value)));
+        return source;
     }
 
     /**

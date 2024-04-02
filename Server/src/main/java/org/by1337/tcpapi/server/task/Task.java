@@ -31,6 +31,7 @@ public class Task {
 
     public void tick() {
         if (canceled) return;
+        currentTick++;
         if (delay == 0 || currentTick % delay == 0) {
             try {
                 runnable.run();
@@ -39,7 +40,6 @@ public class Task {
             }
             currentTick = 0;
         }
-        currentTick++;
     }
 
     public boolean isRepeat() {

@@ -8,7 +8,7 @@ import org.by1337.tcpapi.api.packet.Packet;
 import org.by1337.tcpapi.api.packet.impl.DisconnectPacket;
 import org.by1337.tcpapi.api.packet.impl.PacketAuth;
 import org.by1337.tcpapi.api.packet.impl.PacketAuthResponse;
-import org.by1337.tcpapi.server.Main;
+import org.by1337.tcpapi.server.ServerManager;
 
 import java.net.SocketAddress;
 import java.util.Objects;
@@ -19,7 +19,7 @@ public class UnregisteredConnection extends SimpleChannelInboundHandler<Packet> 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Packet packet) {
         if (packet instanceof PacketAuth auth) {
-            Server server = Main.getServer();
+            Server server = ServerManager.getServer();
 
             if (Objects.equals(server.getPassword(), auth.tryDecodePassword(server.getPassword()))) {
                 try {

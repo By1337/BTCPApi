@@ -4,7 +4,7 @@ import org.by1337.tcpapi.api.event.Event;
 import org.by1337.tcpapi.api.event.EventListener;
 import org.by1337.tcpapi.api.packet.impl.PacketPingRequest;
 import org.by1337.tcpapi.api.packet.impl.PacketPingResponse;
-import org.by1337.tcpapi.server.Main;
+import org.by1337.tcpapi.server.ServerManager;
 import org.by1337.tcpapi.server.command.Command;
 import org.by1337.tcpapi.server.event.PacketReceivedEvent;
 import org.by1337.tcpapi.server.logger.LogManager;
@@ -12,7 +12,6 @@ import org.by1337.tcpapi.server.network.Connection;
 import org.by1337.tcpapi.server.network.Server;
 import org.by1337.tcpapi.server.util.CallBack;
 import org.by1337.tcpapi.server.util.Pair;
-import org.by1337.tcpapi.server.util.WaitNotifyCallBack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -27,9 +26,9 @@ public class PingCommand extends Command<Server> implements EventListener {
 
     public PingCommand() {
         super("ping");
-        Main.getEventManager().registerListener(this);
+        ServerManager.getEventManager().registerListener(this);
         executor(((sender, args) -> {
-            for (Connection connection : Main.getServer().getAllConnections()) {
+            for (Connection connection : ServerManager.getServer().getAllConnections()) {
                 LogManager.getLogger().info("pining " + connection.getId());
                 ping(connection).thenAcceptAsync(pair -> {
                     var con = pair.getLeft();

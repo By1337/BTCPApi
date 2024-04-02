@@ -37,7 +37,7 @@ public class YamlContext {
     }
 
 
-    public String getAsString(@NotNull String path, @NotNull String def) {
+    public String getAsString(@NotNull String path, String def) {
         return AdapterRegistry.getAs(get(path, def), String.class);
     }
 
@@ -46,7 +46,7 @@ public class YamlContext {
         return AdapterRegistry.getAs(get(path), String.class);
     }
 
-    public Number getAsNumber(@NotNull String path, @NotNull Number def) {
+    public Number getAsNumber(@NotNull String path, Number def) {
         return AdapterRegistry.getAs(get(path, def), Number.class);
     }
 
@@ -55,7 +55,7 @@ public class YamlContext {
         return AdapterRegistry.getAs(get(path), Number.class);
     }
 
-    public Byte getAsByte(@NotNull String path, @NotNull Byte def) {
+    public Byte getAsByte(@NotNull String path, Byte def) {
         return AdapterRegistry.getAs(get(path, def), Byte.class);
     }
 
@@ -64,7 +64,7 @@ public class YamlContext {
         return AdapterRegistry.getAs(get(path), Byte.class);
     }
 
-    public Short getAsShort(@NotNull String path, @NotNull Short def) {
+    public Short getAsShort(@NotNull String path, Short def) {
         return AdapterRegistry.getAs(get(path, def), Short.class);
     }
 
@@ -74,7 +74,7 @@ public class YamlContext {
     }
 
     @NotNull
-    public Integer getAsInt(@NotNull String path, @NotNull Integer def) {
+    public Integer getAsInt(@NotNull String path, Integer def) {
         return AdapterRegistry.getAs(get(path, def), Integer.class);
     }
 
@@ -83,7 +83,7 @@ public class YamlContext {
         return AdapterRegistry.getAs(get(path), Integer.class);
     }
 
-    public Long getAsLong(@NotNull String path, @NotNull Long def) {
+    public Long getAsLong(@NotNull String path, Long def) {
         return AdapterRegistry.getAs(get(path, def), Long.class);
     }
 
@@ -92,7 +92,7 @@ public class YamlContext {
         return AdapterRegistry.getAs(get(path), Long.class);
     }
 
-    public Double getAsDouble(@NotNull String path, @NotNull Double def) {
+    public Double getAsDouble(@NotNull String path, Double def) {
         return AdapterRegistry.getAs(get(path, def), Double.class);
     }
 
@@ -101,7 +101,7 @@ public class YamlContext {
         return AdapterRegistry.getAs(get(path), Double.class);
     }
 
-    public Float getAsFloat(@NotNull String path, @NotNull Float def) {
+    public Float getAsFloat(@NotNull String path, Float def) {
         return AdapterRegistry.getAs(get(path, def), Float.class);
     }
 

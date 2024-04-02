@@ -3,6 +3,8 @@ package org.by1337.tcpapi.api.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.handler.codec.DecoderException;
+import org.by1337.tcpapi.api.PacketFlow;
 import org.by1337.tcpapi.api.io.ByteBuffer;
 import org.by1337.tcpapi.api.packet.Packet;
 import org.by1337.tcpapi.api.packet.PacketType;
@@ -14,16 +16,19 @@ import java.util.logging.Logger;
 public class PacketDecoder extends ByteToMessageDecoder {
     private final Logger logger;
     private final boolean debug;
+    private final PacketFlow packetFlow;
 
-    public PacketDecoder(Logger logger) {
+    public PacketDecoder(Logger logger, PacketFlow packetFlow) {
         this.logger = logger;
+        this.packetFlow = packetFlow;
         this.debug = false;
     }
 
-    public PacketDecoder(boolean debug, Logger logger) {
+    public PacketDecoder(boolean debug, Logger logger, PacketFlow packetFlow) {
         this.logger = logger;
         this.debug = debug;
 
+        this.packetFlow = packetFlow;
     }
 
     @Override
@@ -41,6 +46,9 @@ public class PacketDecoder extends ByteToMessageDecoder {
         T packet = PacketType.createNew(id);
         if (packet == null) {
             throw new IOException("Bad packet id " + id);
+        }
+        if (packet.getType().getPacketFlow() != PacketFlow.ANY && packet.getType().getPacketFlow() != packetFlow){
+            throw new DecoderException("Incorrect packet flow detected! " + packet);
         }
         packet.read(byteBuf);
         if (debug) {

@@ -10,6 +10,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.TimeoutException;
+import org.by1337.tcpapi.api.PacketFlow;
 import org.by1337.tcpapi.api.codec.PacketDecoder;
 import org.by1337.tcpapi.api.codec.PacketEncoder;
 import org.by1337.tcpapi.api.codec.Varint21FrameDecoder;
@@ -113,9 +114,9 @@ public class Connection extends SimpleChannelInboundHandler<Packet> {
                                     }
                                     channel.pipeline()
                                             .addLast("splitter", new Varint21FrameDecoder())
-                                            .addLast("decoder", new PacketDecoder(debug, logger))
+                                            .addLast("decoder", new PacketDecoder(debug, logger, PacketFlow.CLIENT_BOUND))
                                             .addLast("prepender", new Varint21LengthFieldPrepender())
-                                            .addLast("encoder", new PacketEncoder(debug, logger))
+                                            .addLast("encoder", new PacketEncoder(debug, logger, PacketFlow.SERVER_BOUND))
                                             .addLast("auth", new ConnectionAuth(Connection.this));
                                 }
                             }

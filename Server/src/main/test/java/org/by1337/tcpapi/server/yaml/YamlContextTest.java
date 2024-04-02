@@ -20,6 +20,8 @@ public class YamlContextTest extends TestCase {
 
         Assert.assertEquals(String.valueOf(context.get("map.subMap.param1")), "10");
         Assert.assertEquals(String.valueOf(context.get("map.subMap.param2")), "test");
+        Assert.assertEquals(String.valueOf(context.get("map.subMap.none", "string")), "string");
+        Assert.assertNull(context.get("map.subMap.none", null));
 
         Assert.assertEquals(context.getAsInt("map.subMap.param1"), (Integer) 10);
 

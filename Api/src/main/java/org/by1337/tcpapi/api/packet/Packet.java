@@ -5,7 +5,6 @@ import org.by1337.tcpapi.api.io.ByteBuffer;
 
 
 import java.io.IOException;
-
 public abstract class Packet {
     private final PacketType<?> type;
 

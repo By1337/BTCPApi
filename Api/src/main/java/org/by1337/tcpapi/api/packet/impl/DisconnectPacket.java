@@ -1,12 +1,14 @@
 package org.by1337.tcpapi.api.packet.impl;
 
+import org.by1337.tcpapi.api.PacketFlow;
 import org.by1337.tcpapi.api.io.ByteBuffer;
 import org.by1337.tcpapi.api.packet.Packet;
+import org.by1337.tcpapi.api.packet.PacketInfo;
 import org.by1337.tcpapi.api.packet.PacketType;
 
 import java.io.IOException;
 import java.util.Objects;
-
+@PacketInfo.PacketFlowInfo(packetFlow = PacketFlow.CLIENT_BOUND)
 public class DisconnectPacket extends Packet {
     private String reason;
     public DisconnectPacket() {

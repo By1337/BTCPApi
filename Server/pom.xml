@@ -51,7 +51,7 @@
                             <addClasspath>false</addClasspath>
                         </manifest>
                         <manifestEntries>
-                            <Main-Class>org.by1337.tcpapi.server.Main</Main-Class>
+                            <Main-Class>org.by1337.tcpapi.server.ServerManager</Main-Class>
                             <Multi-Release>true</Multi-Release>
                             <Built-By>By1337</Built-By>
                         </manifestEntries>

@@ -1,7 +1,10 @@
 package org.by1337.tcpapi.server.task;
 
+import org.by1337.tcpapi.server.logger.LogManager;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 public class AsyncTask extends Task {
     private AtomicBoolean isDone = new AtomicBoolean(true);

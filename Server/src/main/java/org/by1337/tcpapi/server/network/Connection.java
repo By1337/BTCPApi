@@ -7,7 +7,7 @@ import io.netty.handler.timeout.TimeoutException;
 import org.by1337.tcpapi.api.packet.Packet;
 import org.by1337.tcpapi.api.packet.impl.PacketPingRequest;
 import org.by1337.tcpapi.api.packet.impl.PacketPingResponse;
-import org.by1337.tcpapi.server.Main;
+import org.by1337.tcpapi.server.ServerManager;
 import org.by1337.tcpapi.server.event.PacketReceivedEvent;
 import org.by1337.tcpapi.server.logger.MarkedLogger;
 
@@ -15,7 +15,6 @@ import java.net.SocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 public class Connection extends SimpleChannelInboundHandler<Packet> implements Client {
@@ -73,10 +72,10 @@ public class Connection extends SimpleChannelInboundHandler<Packet> implements C
     }
 
     public void tick() {
-        Main.isMainThread();
+        ServerManager.isMainThread();
         Packet packet;
         while ((packet = packets.poll()) != null) {
-            Main.getEventManager().callEvent(new PacketReceivedEvent(this, packet));
+            ServerManager.getEventManager().callEvent(new PacketReceivedEvent(this, packet));
         }
     }
 

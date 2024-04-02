@@ -1,6 +1,6 @@
 package org.by1337.tcpapi.server.addon;
 
-import org.by1337.tcpapi.server.Main;
+import org.by1337.tcpapi.server.ServerManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -126,7 +126,7 @@ public class AddonLoader {
         if (!dataFolder.exists()) {
             dataFolder.mkdir();
         }
-        AddonClassLoader loader = new AddonClassLoader(Main.class.getClassLoader(), description, dataFolder, file, logger, this);
+        AddonClassLoader loader = new AddonClassLoader(ServerManager.class.getClassLoader(), description, dataFolder, file, logger, this);
         JavaAddon addon = loader.getAddon();
         addons.put(addon.getName(), addon);
         loaders.add(loader);
@@ -193,7 +193,7 @@ public class AddonLoader {
 
     public void loadLib(File jar) throws MalformedURLException {
         logger.info("load lib " + jar.getName() + "...");
-        libs.add(new URLClassLoader(new URL[]{jar.toURI().toURL()}, Main.class.getClassLoader()));
+        libs.add(new URLClassLoader(new URL[]{jar.toURI().toURL()}, ServerManager.class.getClassLoader()));
     }
 
     public boolean isLibLoader(URLClassLoader urlClassLoader){

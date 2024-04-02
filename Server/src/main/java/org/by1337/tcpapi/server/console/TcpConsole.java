@@ -1,13 +1,11 @@
 package org.by1337.tcpapi.server.console;
 
 
-import org.by1337.tcpapi.api.packet.impl.PacketPingRequest;
-import org.by1337.tcpapi.server.Main;
+import org.by1337.tcpapi.server.ServerManager;
 import org.by1337.tcpapi.server.command.Command;
 import org.by1337.tcpapi.server.command.CommandException;
 import org.by1337.tcpapi.server.console.impl.PingCommand;
 import org.by1337.tcpapi.server.logger.LogManager;
-import org.by1337.tcpapi.server.network.Connection;
 import org.by1337.tcpapi.server.network.Server;
 import org.by1337.tcpapi.server.util.TimeUtil;
 import org.jline.reader.EndOfFileException;
@@ -18,7 +16,6 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,7 +48,7 @@ public class TcpConsole {
         LineReader reader = this.buildReader(LineReaderBuilder.builder().terminal(terminal));
 
         try {
-            while (!isStopped && !Main.getServer().isStopped()) {
+            while (!isStopped && !ServerManager.getServer().isStopped()) {
                 String line;
                 try {
                     line = reader.readLine("> ");
@@ -67,7 +64,7 @@ public class TcpConsole {
             }
         } catch (UserInterruptException var10) {
             isStopped = true;
-            Main.getInstance().stop();
+            ServerManager.getInstance().stop();
         }
 
     }
@@ -76,7 +73,7 @@ public class TcpConsole {
         String command = input.trim();
         if (!command.isEmpty()) {
             try {
-                this.commands.process(Main.getServer(), input.split(" "));
+                this.commands.process(ServerManager.getServer(), input.split(" "));
             } catch (CommandException e) {
                 logger.severe(e.getMessage());
             }
@@ -96,13 +93,13 @@ public class TcpConsole {
                 new Command<Server>("stop")
                         .executor((s, args) -> {
                             isStopped = true;
-                            Main.getInstance().stop();
+                            ServerManager.getInstance().stop();
                         })
         );
         commands.addSubCommand(
                 new Command<Server>("tps")
                         .executor((s, args) -> {
-                            LogManager.getLogger().info(Main.getTicker().getTpsCounter().tps());
+                            LogManager.getLogger().info(ServerManager.getTicker().getTpsCounter().tps());
                         })
         );
         commands.addSubCommand(

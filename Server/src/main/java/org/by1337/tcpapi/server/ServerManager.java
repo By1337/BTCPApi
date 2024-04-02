@@ -8,25 +8,24 @@ import org.by1337.tcpapi.server.network.Server;
 import org.by1337.tcpapi.server.task.Task;
 import org.by1337.tcpapi.server.task.Ticker;
 import org.by1337.tcpapi.server.util.OptionParser;
-import org.by1337.tcpapi.server.util.TPSCounter;
 import org.by1337.tcpapi.server.util.TimeCounter;
 
 import java.io.File;
 import java.util.Objects;
 
-public class Main {
-    private static Main instance;
+public class ServerManager {
+    private static ServerManager instance;
     private final EventManager eventManager;
     private final Ticker ticker;
     private final Server server;
     private final TcpConsole tcpConsole;
     private final AddonLoader addonLoader;
 
-    private Main(int port, String password) {
+    private ServerManager(int port, String password) {
         this(port, password, false);
     }
 
-    private Main(int port, String password, boolean debug) {
+    private ServerManager(int port, String password, boolean debug) {
         TimeCounter timeCounter = new TimeCounter();
         instance = this;
         LogManager.soutHook();
@@ -63,7 +62,7 @@ public class Main {
         System.exit(0);
     }
 
-    public static Main getInstance() {
+    public static ServerManager getInstance() {
         return instance;
     }
 
@@ -102,7 +101,7 @@ public class Main {
         Objects.requireNonNull(password, "missing pass!");
         boolean debug = Boolean.parseBoolean(parser.getOrDefault("debug", "false"));
         LogManager.getLogger().info("using: " + parser);
-        new Main(port, password, debug);
+        new ServerManager(port, password, debug);
     }
 }
 
