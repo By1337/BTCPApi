@@ -56,7 +56,7 @@ public final class Plugin extends JavaPlugin implements EventListener {
     @Nullable
     private Exception tryConnect() {
         try {
-            Manager manager = new Manager(getLogger(), ip, port, password, serverId, true, eventManager);
+            Manager manager = new Manager(getLogger(), ip, port, password, serverId, false, eventManager);
         } catch (Exception e) {
             return e;
         }

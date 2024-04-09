@@ -1,6 +1,7 @@
 package org.by1337.tcpapi.server.addon;
 
 import org.by1337.tcpapi.server.ServerManager;
+import org.by1337.tcpapi.server.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,16 +32,34 @@ public class AddonLoader {
         this.dir = dir;
     }
 
-    public void loadAll() {
-        if (!dir.exists()) return;
+    public void loadAddon(File file, AddonDescriptionFile description) throws IOException, InvalidAddonException {
+        File dataFolder = new File(dir + "/" + description.getName());
 
-        for (File file : dir.listFiles()) {
-            if (!file.getName().endsWith(".jar") && file.isDirectory()) continue;
-            try {
-                loadAddon(file);
-            } catch (InvalidAddonException | IOException e) {
-                logger.log(Level.SEVERE, "failed to load addon: " + file.getName(), e);
-            }
+        if (!dataFolder.exists()) {
+            dataFolder.mkdir();
+        }
+        AddonClassLoader loader = new AddonClassLoader(ServerManager.class.getClassLoader(), description, dataFolder, file, logger, this);
+        JavaAddon addon = loader.getAddon();
+        addons.put(addon.getName(), addon);
+        loaders.add(loader);
+    }
+
+    public void onLoadPingAll() {
+        for (String s : addons.keySet()) {
+            onLoadPing(s);
+        }
+    }
+
+    public void onLoadPing(String name) {
+        JavaAddon module = getAddon(name);
+        if (module == null) {
+            throw new IllegalArgumentException("unknown addon: " + name);
+        }
+        if (module.isEnabled()) return;
+        try {
+            module.onLoad();
+        } catch (Throwable t) {
+            logger.log(Level.SEVERE, "failed to load addon: " + module.getName(), t);
         }
     }
 
@@ -53,7 +72,7 @@ public class AddonLoader {
         module.getLogger().info("enabling...");
         try {
             module.setEnabled(true);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.log(Level.SEVERE, "failed to enable addon: " + module.getName(), e);
             disable(name);
         }
@@ -68,7 +87,7 @@ public class AddonLoader {
         module.getLogger().info("disabling...");
         try {
             module.setEnabled(false);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.log(Level.SEVERE, "failed to disable addon: " + module.getName(), e);
         }
     }
@@ -114,24 +133,6 @@ public class AddonLoader {
         return addons.get(name);
     }
 
-    public void loadAddon(File file) throws IOException, InvalidAddonException {
-        AddonDescriptionFile description = new AddonDescriptionFile(readFileContentFromJar(file.getPath()));
-
-        if (addons.containsKey(description.getName())) {
-            throw new InvalidAddonException("duplicated addon %s!", description.getName());
-        }
-
-        File dataFolder = new File(dir + "/" + description.getName());
-
-        if (!dataFolder.exists()) {
-            dataFolder.mkdir();
-        }
-        AddonClassLoader loader = new AddonClassLoader(ServerManager.class.getClassLoader(), description, dataFolder, file, logger, this);
-        JavaAddon addon = loader.getAddon();
-        addons.put(addon.getName(), addon);
-        loaders.add(loader);
-        addon.onLoad();
-    }
 
     public static String readFileContentFromJar(String jar) throws IOException {
         try (JarFile jarFile = new JarFile(jar)) {
@@ -196,7 +197,7 @@ public class AddonLoader {
         libs.add(new URLClassLoader(new URL[]{jar.toURI().toURL()}, ServerManager.class.getClassLoader()));
     }
 
-    public boolean isLibLoader(URLClassLoader urlClassLoader){
+    public boolean isLibLoader(URLClassLoader urlClassLoader) {
         return libs.contains(urlClassLoader);
     }
 
@@ -213,5 +214,13 @@ public class AddonLoader {
 
     public Collection<JavaAddon> getAddons() {
         return addons.values();
+    }
+
+    public Logger getLogger() {
+        return logger;
+    }
+
+    public File getDir() {
+        return dir;
     }
 }

@@ -1,6 +1,7 @@
 package org.by1337.tcpapi.server;
 
 import org.by1337.tcpapi.api.event.EventManager;
+import org.by1337.tcpapi.server.addon.AddonInitializer;
 import org.by1337.tcpapi.server.addon.AddonLoader;
 import org.by1337.tcpapi.server.console.TcpConsole;
 import org.by1337.tcpapi.server.logger.LogManager;
@@ -38,10 +39,16 @@ public class ServerManager {
         ticker = new Ticker();
         server = new Server(port, password);
         tcpConsole = new TcpConsole();
-        addonLoader.loadAll();
+
+        AddonInitializer addonInitializer = new AddonInitializer(addonLoader);
+        addonInitializer.findAddons();
+        addonInitializer.process();
+        addonInitializer.onLoad();
+     //   addonLoader.onLoadPingAll();
         server.start(debug);
         ticker.registerTask(new Task(true, 0, this::tick));
-        addonLoader.enableAll();
+        addonInitializer.onEnable();
+       // addonLoader.enableAll();
         LogManager.getLogger().info("Done in (" + timeCounter.getTimeFormat() + ")");
         new Thread(tcpConsole::start).start();
         ticker.start();

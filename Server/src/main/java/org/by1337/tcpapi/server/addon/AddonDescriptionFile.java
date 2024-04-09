@@ -18,22 +18,48 @@ public class AddonDescriptionFile {
     private final String version;
     private final String description;
     private final Set<String> authors;
+    private final Set<String> depend;
+    private final Set<String> softDepend;
 
-    AddonDescriptionFile(String name, String mainClass, String version, String description, Set<String> authors) {
+    AddonDescriptionFile(String name, String mainClass, String version, String description, Set<String> authors, Set<String> depend, Set<String> softDepend) {
         this.name = name;
         this.mainClass = mainClass;
         this.version = version;
         this.description = description;
         this.authors = authors;
+        this.depend = depend;
+        this.softDepend = softDepend;
     }
 
     public AddonDescriptionFile(JsonObject object) {
         name = object.get("name").getAsString();
         validate(name);
         mainClass = object.get("main").getAsString();
-        description = object.get("description").getAsString();
+        if (object.has("description")) {
+            description = object.get("description").getAsString();
+        } else {
+            description = "";
+        }
         version = object.get("version").getAsString();
-        authors = toSetString(object.getAsJsonArray("authors"));
+        if (object.has("authors")) {
+            authors = toSetString(object.getAsJsonArray("authors"));
+        } else {
+            authors = new HashSet<>();
+        }
+        if (object.has("author")) {
+            authors.add(object.get("author").getAsString());
+        }
+        if (object.has("depend")) {
+            depend = toSetString(object.getAsJsonArray("depend"));
+        } else {
+            depend = new HashSet<>();
+        }
+        if (object.has("soft-depend")) {
+            softDepend = toSetString(object.getAsJsonArray("soft-depend"));
+        } else {
+            softDepend = new HashSet<>();
+        }
+
     }
 
     public AddonDescriptionFile(String json) {
@@ -83,5 +109,13 @@ public class AddonDescriptionFile {
         if (!pattern.matcher(input).matches()) {
             throw new IllegalArgumentException(message.get());
         }
+    }
+
+    public Set<String> getDepend() {
+        return depend;
+    }
+
+    public Set<String> getSoftDepend() {
+        return softDepend;
     }
 }

@@ -23,4 +23,5 @@ public interface Addon {
     void onDisable();
     @NotNull
     AddonDescriptionFile getDescription();
+    boolean isTryTyEnable();
 }

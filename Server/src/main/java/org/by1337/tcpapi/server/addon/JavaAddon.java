@@ -17,6 +17,7 @@ public abstract class JavaAddon implements Addon {
     private AddonDescriptionFile descriptionFile;
     private ClassLoader classLoader;
     private File file;
+    private boolean tryEnable;
 
     public JavaAddon() {
         ClassLoader classLoader = this.getClass().getClassLoader();
@@ -59,12 +60,15 @@ public abstract class JavaAddon implements Addon {
     public AddonDescriptionFile getDescription() {
         return descriptionFile;
     }
-
+    public boolean isTryTyEnable(){
+        return tryEnable;
+    }
     protected final void setEnabled(boolean enabled) {
         if (isEnabled != enabled) {
             isEnabled = enabled;
 
             if (isEnabled) {
+                tryEnable = true;
                 onEnable();
             } else {
                 onDisable();
