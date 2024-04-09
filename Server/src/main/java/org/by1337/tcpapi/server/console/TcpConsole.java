@@ -100,13 +100,19 @@ public class TcpConsole {
         commands.addSubCommand(
                 new Command<Server>("tps")
                         .executor((s, args) -> {
-                            LogManager.getLogger().info(ServerManager.getTicker().getTpsCounter().tps());
+                            LogManager.getLogger().info(ServerManager.getInstance().getHealManager().getTpsCounter().tps());
                         })
         );
         commands.addSubCommand(
                 new Command<Server>("uptime")
                         .executor((s, args) -> {
                             LogManager.getLogger().info(TimeUtil.getFormat((int) ((System.currentTimeMillis() - startAt) / 1_000)));
+                        })
+        );
+        commands.addSubCommand(
+                new Command<Server>("healReport")
+                        .executor((s, args) -> {
+                            LogManager.getLogger().info(ServerManager.getInstance().getHealManager().report());
                         })
         );
         commands.addSubCommand(

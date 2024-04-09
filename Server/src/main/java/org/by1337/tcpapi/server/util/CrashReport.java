@@ -80,7 +80,7 @@ public class CrashReport {
         List<String> list  = runtimeMXBean.getInputArguments().stream().filter((s) -> s.startsWith("-X")).toList();
         return String.format("%d total; %s", list.size(), String.join(" ", list));
     }
-    private String getMemoryInfo(){
+    public static String getMemoryInfo(){
         Runtime runtime = Runtime.getRuntime();
         long maxMemory = runtime.maxMemory();
         long totalMemory = runtime.totalMemory();

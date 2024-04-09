@@ -79,6 +79,7 @@ public class Server {
                                         .addLast("decoder", new PacketDecoder(debug, new MarkedLogger("PACKET_RECEIVED", PacketDecoder.class), PacketFlow.SERVER_BOUND))
                                         .addLast("prepender", new Varint21LengthFieldPrepender())
                                         .addLast("encoder", new PacketEncoder(debug, new MarkedLogger("PACKET_SENT", PacketEncoder.class), PacketFlow.CLIENT_BOUND))
+                                        .addLast("packet_counter", ServerManager.getInstance().getHealManager().getPacketCounter().getChannelHook())
                                         .addLast("auth", new UnregisteredConnection());
                             }
                         }

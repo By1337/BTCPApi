@@ -4,7 +4,7 @@ import org.by1337.tcpapi.api.util.LockableList;
 import org.by1337.tcpapi.server.ServerManager;
 import org.by1337.tcpapi.server.logger.LogManager;
 import org.by1337.tcpapi.server.util.CrashReport;
-import org.by1337.tcpapi.server.util.TPSCounter;
+import org.by1337.tcpapi.server.heal.TPSCounter;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -20,15 +20,12 @@ public class Ticker {
     private volatile boolean stopped;
     private final LockableList<Task> tasks = new LockableList<>();
     private final Queue<Runnable> toSync = new ConcurrentLinkedQueue<>();
-    private final TPSCounter tpsCounter;
 
     public Ticker() {
         mainThread = Thread.currentThread();
-        tpsCounter = new TPSCounter();
     }
     public Ticker(Thread thread) {
         mainThread = thread;
-        tpsCounter = new TPSCounter();
     }
 
     public void start() {
@@ -49,8 +46,6 @@ public class Ticker {
                     lastOverloadTime = nextTick;
                 }
                 nextTick += TICK_TIME_MILS;
-
-                tpsCounter.tick();
 
                 Runnable r;
                 while ((r = toSync.poll()) != null) {
@@ -103,7 +98,4 @@ public class Ticker {
         return mainThread == Thread.currentThread();
     }
 
-    public TPSCounter getTpsCounter() {
-        return tpsCounter;
-    }
 }

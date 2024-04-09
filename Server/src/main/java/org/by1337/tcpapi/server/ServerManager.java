@@ -4,6 +4,7 @@ import org.by1337.tcpapi.api.event.EventManager;
 import org.by1337.tcpapi.server.addon.AddonInitializer;
 import org.by1337.tcpapi.server.addon.AddonLoader;
 import org.by1337.tcpapi.server.console.TcpConsole;
+import org.by1337.tcpapi.server.heal.HealManager;
 import org.by1337.tcpapi.server.logger.LogManager;
 import org.by1337.tcpapi.server.network.Server;
 import org.by1337.tcpapi.server.task.Task;
@@ -21,6 +22,7 @@ public class ServerManager {
     private final Server server;
     private final TcpConsole tcpConsole;
     private final AddonLoader addonLoader;
+    private final HealManager healManager;
 
     private ServerManager(int port, String password) {
         this(port, password, false);
@@ -28,6 +30,7 @@ public class ServerManager {
 
     private ServerManager(int port, String password, boolean debug) {
         TimeCounter timeCounter = new TimeCounter();
+        healManager = new HealManager();
         instance = this;
         LogManager.soutHook();
         File dir = new File("./addons");
@@ -57,6 +60,7 @@ public class ServerManager {
 
     private void tick() {
         server.tick();
+        healManager.tick();
     }
 
 
@@ -109,6 +113,10 @@ public class ServerManager {
         boolean debug = Boolean.parseBoolean(parser.getOrDefault("debug", "false"));
         LogManager.getLogger().info("using: " + parser);
         new ServerManager(port, password, debug);
+    }
+
+    public HealManager getHealManager() {
+        return healManager;
     }
 }
 

@@ -1,4 +1,6 @@
-package org.by1337.tcpapi.server.util;
+package org.by1337.tcpapi.server.heal;
+
+import org.by1337.tcpapi.server.util.NumberUtil;
 
 import java.util.concurrent.TimeUnit;
 
