@@ -2,6 +2,7 @@ package org.by1337.tcpapi.server.console;
 
 
 import org.by1337.tcpapi.server.ServerManager;
+import org.by1337.tcpapi.server.backup.BackupCreator;
 import org.by1337.tcpapi.server.command.Command;
 import org.by1337.tcpapi.server.command.CommandException;
 import org.by1337.tcpapi.server.console.impl.PingCommand;
@@ -107,6 +108,21 @@ public class TcpConsole {
                         .executor((s, args) -> {
                             LogManager.getLogger().info(TimeUtil.getFormat((int) ((System.currentTimeMillis() - startAt) / 1_000)));
                         })
+        );
+        commands.addSubCommand(
+                new Command<Server>("backup")
+                        .addSubCommand(new Command<Server>("create")
+                                .executor((s, args) -> {
+                                    BackupCreator backupCreator = new BackupCreator();
+                                    backupCreator.createBackUp().whenComplete(((file, throwable) -> {
+                                        if (throwable != null) {
+                                            BackupCreator.logger.log(Level.SEVERE, "Failed to create backup!", throwable);
+                                        } else {
+                                            BackupCreator.logger.info("Backup successfully created! file: " + file.getPath());
+                                        }
+                                    }));
+                                })
+                        )
         );
         commands.addSubCommand(new PingCommand());
     }
