@@ -8,6 +8,7 @@ import org.by1337.tcpapi.server.heal.TPSCounter;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.LockSupport;
 import java.util.logging.Logger;
 
 public class Ticker {
@@ -64,7 +65,8 @@ public class Ticker {
                 tasks.unlock();
 
                 while (getMonotonicMillis() < nextTick) {
-                    Thread.onSpinWait();
+                  //  Thread.onSpinWait();
+                    LockSupport.parkNanos(1000L);
                 }
             }
         } catch (Throwable throwable) {

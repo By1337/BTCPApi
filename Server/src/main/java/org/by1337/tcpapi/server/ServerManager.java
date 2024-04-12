@@ -1,8 +1,10 @@
 package org.by1337.tcpapi.server;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.by1337.tcpapi.api.event.EventManager;
 import org.by1337.tcpapi.server.addon.AddonInitializer;
 import org.by1337.tcpapi.server.addon.AddonLoader;
+import org.by1337.tcpapi.server.config.ConfigManager;
 import org.by1337.tcpapi.server.console.TcpConsole;
 import org.by1337.tcpapi.server.heal.HealManager;
 import org.by1337.tcpapi.server.logger.LogManager;
@@ -23,6 +25,7 @@ public class ServerManager {
     private final TcpConsole tcpConsole;
     private final AddonLoader addonLoader;
     private final HealManager healManager;
+    private final ConfigManager configManager;
 
     private ServerManager(int port, String password) {
         this(port, password, false);
@@ -33,6 +36,8 @@ public class ServerManager {
         healManager = new HealManager();
         instance = this;
         LogManager.soutHook();
+        configManager = new ConfigManager();
+        applyCfg();
         File dir = new File("./addons");
         if (!dir.exists()) {
             dir.mkdir();
@@ -47,22 +52,20 @@ public class ServerManager {
         addonInitializer.findAddons();
         addonInitializer.process();
         addonInitializer.onLoad();
-     //   addonLoader.onLoadPingAll();
+        //   addonLoader.onLoadPingAll();
         server.start(debug);
         ticker.registerTask(new Task(true, 0, this::tick));
         addonInitializer.onEnable();
-       // addonLoader.enableAll();
+        // addonLoader.enableAll();
         LogManager.getLogger().info("Done in (" + timeCounter.getTimeFormat() + ")");
-        new Thread(tcpConsole::start).start();
+        new ThreadFactoryBuilder().setNameFormat("Terminal reader #%d").setDaemon(true).build().newThread(tcpConsole::start).start();
         ticker.start();
     }
-
 
     private void tick() {
         server.tick();
         healManager.tick();
     }
-
 
     public void stop() {
         ticker.stop();
@@ -71,6 +74,10 @@ public class ServerManager {
         addonLoader.unloadAll();
         server.shutdown();
         System.exit(0);
+    }
+
+    private void applyCfg() {
+        System.setProperty("io.netty.eventLoopThreads", Integer.toString(configManager.getNettyThreads()));
     }
 
     public static ServerManager getInstance() {
