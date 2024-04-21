@@ -6,10 +6,13 @@
     <version>1.0</version>
     <packaging>pom</packaging>
     <name>TCPApi</name>
+
     <modules>
         <module>Api</module>
         <module>Server</module>
         <module>Client</module>
+        <module>VelocityClient</module>
+        <module>VelocityApi</module>
     </modules>
 
 

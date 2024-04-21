@@ -1,6 +1,7 @@
 package org.by1337.tcpapi.server;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import org.by1337.tcp.velocity.api.VelocityPacketRegistry;
 import org.by1337.tcpapi.api.event.EventManager;
 import org.by1337.tcpapi.server.addon.AddonInitializer;
 import org.by1337.tcpapi.server.addon.AddonLoader;
@@ -14,6 +15,7 @@ import org.by1337.tcpapi.server.task.Task;
 import org.by1337.tcpapi.server.task.Ticker;
 import org.by1337.tcpapi.server.util.OptionParser;
 import org.by1337.tcpapi.server.util.TimeCounter;
+import org.by1337.tcpapi.server.velocity.VelocityManager;
 
 import java.io.File;
 import java.util.Objects;
@@ -29,12 +31,14 @@ public class ServerManager {
     private final ConfigManager configManager;
     private final ChannelStreamManager channelStreamManager;
     private final boolean debug;
+    private final VelocityManager velocityManager;
 
     private ServerManager(int port, String password) {
         this(port, password, false);
     }
 
     private ServerManager(int port, String password, boolean debug) {
+        VelocityPacketRegistry.load();
         this.debug = debug;
         instance = this;
         TimeCounter timeCounter = new TimeCounter();
@@ -54,7 +58,7 @@ public class ServerManager {
         channelStreamManager = new ChannelStreamManager();
 
         eventManager.registerListener(channelStreamManager);
-
+        velocityManager = new VelocityManager(channelStreamManager, server);
         AddonInitializer addonInitializer = new AddonInitializer(addonLoader);
         addonInitializer.findAddons();
         addonInitializer.process();
@@ -139,6 +143,10 @@ public class ServerManager {
 
     public static boolean isDebug() {
         return instance.debug;
+    }
+
+    public static VelocityManager getVelocityManager() {
+        return instance.velocityManager;
     }
 }
 

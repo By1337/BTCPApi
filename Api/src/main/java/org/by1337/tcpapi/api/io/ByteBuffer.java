@@ -14,6 +14,7 @@ import org.by1337.tcpapi.api.packet.Packet;
 import org.by1337.tcpapi.api.packet.PacketType;
 import org.by1337.tcpapi.api.util.SpacedNameKey;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -210,11 +211,11 @@ public class ByteBuffer extends ByteBuf {
         }
     }
 
-    public <K, V> Map<K, V> readMap(Function<ByteBuffer, K> keySerializer, Function<ByteBuffer, V> valueSerializer) {
+    public <K, V> Map<K, V> readMap(Function<ByteBuffer, K> keyDeserializer, Function<ByteBuffer, V> valueDeserializer) {
         int size = readVarInt();
         Map<K, V> map = new HashMap<>(size);
         for (int i = 0; i < size; i++) {
-            map.put(keySerializer.apply(this), valueSerializer.apply(this));
+            map.put(keyDeserializer.apply(this), valueDeserializer.apply(this));
         }
         return map;
     }
@@ -234,6 +235,23 @@ public class ByteBuffer extends ByteBuf {
 
     public NBT readNBT() {
         return readUnknownNBT(readEnum(NbtType.class));
+    }
+
+    public <T> void writeOptional(@Nullable T val, BiConsumer<ByteBuffer, T> serializer) {
+        if (val != null) {
+            writeBoolean(true);
+            serializer.accept(this, val);
+        } else {
+            writeBoolean(false);
+        }
+    }
+
+    public <T> Optional<T> readOptional(Function<ByteBuffer, T> deserializer) {
+        if (readBoolean()) {
+            return Optional.of(deserializer.apply(this));
+        } else {
+            return Optional.empty();
+        }
     }
 
     /**

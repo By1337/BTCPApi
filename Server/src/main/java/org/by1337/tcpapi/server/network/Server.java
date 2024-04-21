@@ -21,6 +21,8 @@ import org.by1337.tcpapi.server.event.ClientDisconnectEvent;
 import org.by1337.tcpapi.server.logger.LogManager;
 import org.by1337.tcpapi.server.logger.MarkedLogger;
 import org.by1337.tcpapi.server.task.ServerRunnable;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -127,6 +129,12 @@ public class Server {
 
     public Collection<Connection> getAllConnections() {
         return connections.values();
+    }
+
+    @Contract("null -> null")
+    public @Nullable Connection getConnectionById(@Nullable String id) {
+        if (id == null) return null;
+        return connections.get(id);
     }
 
     public void disconnect(Connection connection, String reason) {

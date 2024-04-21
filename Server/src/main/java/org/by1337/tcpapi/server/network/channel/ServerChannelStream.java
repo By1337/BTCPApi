@@ -37,7 +37,7 @@ public class ServerChannelStream {
         listener.read(packet, client, this);
     }
 
-    public Set<Client> gteAllClients() {
+    public Set<Client> getAllClients() {
         return manager.getAllClientByChannel(name);
     }
 }
