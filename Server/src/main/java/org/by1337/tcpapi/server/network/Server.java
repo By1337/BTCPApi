@@ -17,8 +17,10 @@ import org.by1337.tcpapi.api.codec.Varint21FrameDecoder;
 import org.by1337.tcpapi.api.codec.Varint21LengthFieldPrepender;
 import org.by1337.tcpapi.api.packet.Packet;
 import org.by1337.tcpapi.server.ServerManager;
+import org.by1337.tcpapi.server.event.ClientDisconnectEvent;
 import org.by1337.tcpapi.server.logger.LogManager;
 import org.by1337.tcpapi.server.logger.MarkedLogger;
+import org.by1337.tcpapi.server.task.ServerRunnable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -130,6 +132,7 @@ public class Server {
     public void disconnect(Connection connection, String reason) {
         if (connections.remove(connection.getId()) != null) {
             logger.info("disconnect: " + connection.getId() + " " + connection.getAddress() + " reason: " + reason);
+            ServerRunnable.runTask(() -> ServerManager.getEventManager().callEvent(new ClientDisconnectEvent(connection, reason)));
         }
     }
 

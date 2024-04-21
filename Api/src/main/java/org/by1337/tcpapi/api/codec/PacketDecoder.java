@@ -8,6 +8,7 @@ import org.by1337.tcpapi.api.PacketFlow;
 import org.by1337.tcpapi.api.io.ByteBuffer;
 import org.by1337.tcpapi.api.packet.Packet;
 import org.by1337.tcpapi.api.packet.PacketType;
+import org.by1337.tcpapi.api.packet.impl.channel.ChanneledPacket;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,18 +42,17 @@ public class PacketDecoder extends ByteToMessageDecoder {
         }
     }
 
-    private <T extends Packet> T read(ByteBuffer byteBuf) throws IOException {
-        int id = byteBuf.readVarInt();
-        T packet = PacketType.createNew(id);
-        if (packet == null) {
-            throw new IOException("Bad packet id " + id);
-        }
-        if (packet.getType().getPacketFlow() != PacketFlow.ANY && packet.getType().getPacketFlow() != packetFlow){
+    private Packet read(ByteBuffer byteBuf) throws IOException {
+        Packet packet = byteBuf.readPacket();
+        if (packet.getType().getPacketFlow() != PacketFlow.ANY && packet.getType().getPacketFlow() != packetFlow) {
             throw new DecoderException("Incorrect packet flow detected! " + packet);
         }
-        packet.read(byteBuf);
         if (debug) {
-            logger.info(packet.getClass().getSimpleName());
+            if (packet instanceof ChanneledPacket channeledPacket) {
+                logger.info(packet.getClass().getSimpleName() + " packet=" + channeledPacket.getPacket().getClass().getSimpleName() + " channel=" + channeledPacket.getChannelID());
+            } else {
+                logger.info(packet.getClass().getSimpleName());
+            }
         }
         return packet;
     }

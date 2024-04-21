@@ -2,6 +2,7 @@ package org.by1337.tcpapi.client;
 
 import org.by1337.tcpapi.api.event.EventManager;
 import org.by1337.tcpapi.client.network.Connection;
+import org.by1337.tcpapi.client.network.channel.ClientChannelStreamManager;
 
 import java.util.logging.Logger;
 
@@ -11,6 +12,7 @@ public class Manager {
     private final Logger logger;
     private final EventManager eventManager;
     private final Thread mainThread;
+    private ClientChannelStreamManager channelStreamManager;
 
     public Manager(Logger logger, String ip, int port, String password, String id, EventManager eventManager) {
         this(logger, ip, port, password, id, false, eventManager);
@@ -30,6 +32,8 @@ public class Manager {
         if (!connection.isAuthorized()) {
             throw new IllegalStateException("connect failed!");
         }
+        channelStreamManager = new ClientChannelStreamManager();
+        eventManager.registerListener(channelStreamManager);
     }
     public void tick(){
         connection.tick();
@@ -57,6 +61,10 @@ public class Manager {
 
     public static Manager getInstance() {
         return instance;
+    }
+
+    public static ClientChannelStreamManager getChannelStreamManager() {
+        return instance.channelStreamManager;
     }
 }
 

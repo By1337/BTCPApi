@@ -6,6 +6,13 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import io.netty.util.ByteProcessor;
+import org.by1337.blib.nbt.NBT;
+import org.by1337.blib.nbt.NbtByteBuffer;
+import org.by1337.blib.nbt.NbtType;
+import org.by1337.tcpapi.api.PacketFlow;
+import org.by1337.tcpapi.api.packet.Packet;
+import org.by1337.tcpapi.api.packet.PacketType;
+import org.by1337.tcpapi.api.util.SpacedNameKey;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -17,10 +24,7 @@ import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -46,6 +50,7 @@ public class ByteBuffer extends ByteBuf {
 
         return var1;
     }
+
     public long readVarLong() {
         long var1 = 0L;
         int var3 = 0;
@@ -61,23 +66,27 @@ public class ByteBuffer extends ByteBuf {
 
         return var1;
     }
+
     public static int getVarIntSize(int i) {
-        for(int var1 = 1; var1 < 5; ++var1) {
+        for (int var1 = 1; var1 < 5; ++var1) {
             if ((i & -1 << var1 * 7) == 0) {
                 return var1;
             }
         }
         return 5;
     }
+
     @CanIgnoreReturnValue
     public ByteBuffer writeUUID(@NotNull UUID uuid) {
         this.writeVarLong(uuid.getMostSignificantBits());
         this.writeVarLong(uuid.getLeastSignificantBits());
         return this;
     }
+
     public UUID readUUID() {
         return new UUID(this.readVarLong(), this.readVarLong());
     }
+
     @CanIgnoreReturnValue
     public ByteBuffer writeVarInt(int i) {
         while ((i & -128) != 0) {
@@ -88,6 +97,7 @@ public class ByteBuffer extends ByteBuf {
         this.writeByte(i);
         return this;
     }
+
     @CanIgnoreReturnValue
     public ByteBuffer writeVarLong(long l) {
         while ((l & -128L) != 0L) {
@@ -97,9 +107,11 @@ public class ByteBuffer extends ByteBuf {
         this.writeByte((int) l);
         return this;
     }
+
     public String readUtf() {
         return readUtf(32767);
     }
+
     public String readUtf(int len) {
         int realLen = this.readVarInt();
         if (realLen > len * 4) {
@@ -116,10 +128,12 @@ public class ByteBuffer extends ByteBuf {
             }
         }
     }
+
     @CanIgnoreReturnValue
     public ByteBuffer writeUtf(@NotNull String string) {
         return this.writeUtf(string, 32767);
     }
+
     @CanIgnoreReturnValue
     public ByteBuffer writeUtf(@NotNull String string, int maxLen) {
         byte[] var3 = string.getBytes(StandardCharsets.UTF_8);
@@ -147,12 +161,79 @@ public class ByteBuffer extends ByteBuf {
         }
         return list;
     }
+
     public void writeStringList(Collection<String> list) {
         writeList(list, (ByteBuffer::writeUtf));
     }
 
     public List<String> readStringList() {
         return readList(ByteBuffer::readUtf);
+    }
+
+    public Packet readPacket() throws IOException {
+        int id = readVarInt();
+        Packet packet = PacketType.createNew(id);
+        if (packet == null) {
+            throw new IOException("Bad packet id " + id);
+        }
+        packet.read(this);
+        return packet;
+    }
+
+    public void writePacket(Packet packet) throws IOException {
+        writeVarInt(packet.getType().getId());
+        packet.write(this);
+    }
+
+
+    public void writeSpacedNameKey(SpacedNameKey spacedNameKey) {
+        writeUtf(spacedNameKey.toString());
+    }
+
+    public SpacedNameKey readSpacedNameKey() {
+        return new SpacedNameKey(readUtf());
+    }
+
+    public void writeEnum(Enum<?> e) {
+        this.writeVarInt(e.ordinal());
+    }
+
+    public <T extends Enum<T>> T readEnum(Class<T> clazz) {
+        return clazz.getEnumConstants()[readVarInt()];
+    }
+
+    public <K, V> void writeMap(Map<K, V> source, BiConsumer<ByteBuffer, K> keySerializer, BiConsumer<ByteBuffer, V> valueSerializer) {
+        writeVarInt(source.size());
+        for (Map.Entry<K, V> entry : source.entrySet()) {
+            keySerializer.accept(this, entry.getKey());
+            valueSerializer.accept(this, entry.getValue());
+        }
+    }
+
+    public <K, V> Map<K, V> readMap(Function<ByteBuffer, K> keySerializer, Function<ByteBuffer, V> valueSerializer) {
+        int size = readVarInt();
+        Map<K, V> map = new HashMap<>(size);
+        for (int i = 0; i < size; i++) {
+            map.put(keySerializer.apply(this), valueSerializer.apply(this));
+        }
+        return map;
+    }
+
+    public void writeUnknownNBT(NBT nbt) {
+        nbt.write(new IoNbtByteBuffer(this));
+    }
+
+    public NBT readUnknownNBT(NbtType type) {
+        return type.read(new IoNbtByteBuffer(this));
+    }
+
+    public void writeNbt(NBT nbt) {
+        writeEnum(nbt.getType());
+        writeUnknownNBT(nbt);
+    }
+
+    public NBT readNBT() {
+        return readUnknownNBT(readEnum(NbtType.class));
     }
 
     /**
@@ -1960,7 +2041,7 @@ public class ByteBuffer extends ByteBuf {
      */
     @Override
     public ByteBuf writeShortLE(int value) {
-        return source. writeShortLE(value);
+        return source.writeShortLE(value);
     }
 
     /**
@@ -2715,7 +2796,7 @@ public class ByteBuffer extends ByteBuf {
      *
      * @param charset
      * @throws java.nio.charset.UnsupportedCharsetException if the specified character set name is not supported by the
-     *                                     current VM
+     *                                                      current VM
      */
     @Override
     public String toString(Charset charset) {

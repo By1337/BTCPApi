@@ -2,6 +2,10 @@ package org.by1337.tcpapi.api.packet;
 
 import org.by1337.tcpapi.api.PacketFlow;
 import org.by1337.tcpapi.api.packet.impl.*;
+import org.by1337.tcpapi.api.packet.impl.channel.ChannelStatusPacket;
+import org.by1337.tcpapi.api.packet.impl.channel.ChanneledPacket;
+import org.by1337.tcpapi.api.packet.impl.channel.ClientUnregisterChannelStreamPacket;
+import org.by1337.tcpapi.api.packet.impl.channel.RegisterChannelPacket;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,6 +23,10 @@ public class PacketType<T extends Packet> {
     public static final PacketType<PacketAuthResponse> AUTH_RESPONSE = new PacketType<>("auth_response", PacketAuthResponse::new).setPacketFlow(PacketFlow.CLIENT_BOUND);
     public static final PacketType<PacketPingRequest> PING_REQUEST = new PacketType<>("ping_request", PacketPingRequest::new);
     public static final PacketType<PacketPingResponse> PING_RESPONSE = new PacketType<>("ping_response", PacketPingResponse::new);
+    public static final PacketType<ChanneledPacket> CHANNELED_PACKET = new PacketType<>("channeled_packet", ChanneledPacket::new);
+    public static final PacketType<RegisterChannelPacket> REGISTER_CHANNEL_PACKET = new PacketType<>("register_channel_packet", RegisterChannelPacket::new).setPacketFlow(PacketFlow.SERVER_BOUND);
+    public static final PacketType<ChannelStatusPacket> CHANNEL_STATUS_PACKET = new PacketType<>("channel_status_packet", ChannelStatusPacket::new).setPacketFlow(PacketFlow.CLIENT_BOUND);
+    public static final PacketType<ClientUnregisterChannelStreamPacket> CLIENT_UNREGISTER_CHANNEL_STREAM_PACKET = new PacketType<>("client_unregister_channel_stream_packet", ClientUnregisterChannelStreamPacket::new).setPacketFlow(PacketFlow.SERVER_BOUND);
 
     private final Supplier<T> suppler;
     private final int id;
@@ -29,8 +37,9 @@ public class PacketType<T extends Packet> {
         synchronized (sync) {
             id = Arrays.hashCode(uniqueId.toCharArray());
             this.suppler = suppler;
-            if (types.containsKey(id)) {
-                throw new IllegalStateException("a packet with this ID already exists! uniqueId='" + uniqueId + "'");
+            PacketType<?> type = types.get(id);
+            if (type != null) {
+                throw new IllegalStateException("a packet with this ID already exists! Current uniqueId='" + uniqueId + "' other uniqueId='" + type.name + "'");
             }
             name = uniqueId;
             types.put(id, this);

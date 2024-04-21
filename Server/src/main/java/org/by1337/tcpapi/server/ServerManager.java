@@ -9,6 +9,7 @@ import org.by1337.tcpapi.server.console.TcpConsole;
 import org.by1337.tcpapi.server.heal.HealManager;
 import org.by1337.tcpapi.server.logger.LogManager;
 import org.by1337.tcpapi.server.network.Server;
+import org.by1337.tcpapi.server.network.channel.ChannelStreamManager;
 import org.by1337.tcpapi.server.task.Task;
 import org.by1337.tcpapi.server.task.Ticker;
 import org.by1337.tcpapi.server.util.OptionParser;
@@ -26,15 +27,18 @@ public class ServerManager {
     private final AddonLoader addonLoader;
     private final HealManager healManager;
     private final ConfigManager configManager;
+    private final ChannelStreamManager channelStreamManager;
+    private final boolean debug;
 
     private ServerManager(int port, String password) {
         this(port, password, false);
     }
 
     private ServerManager(int port, String password, boolean debug) {
+        this.debug = debug;
+        instance = this;
         TimeCounter timeCounter = new TimeCounter();
         healManager = new HealManager();
-        instance = this;
         LogManager.soutHook();
         configManager = new ConfigManager();
         applyCfg();
@@ -47,6 +51,9 @@ public class ServerManager {
         ticker = new Ticker();
         server = new Server(port, password);
         tcpConsole = new TcpConsole();
+        channelStreamManager = new ChannelStreamManager();
+
+        eventManager.registerListener(channelStreamManager);
 
         AddonInitializer addonInitializer = new AddonInitializer(addonLoader);
         addonInitializer.findAddons();
@@ -58,7 +65,7 @@ public class ServerManager {
         addonInitializer.onEnable();
         // addonLoader.enableAll();
         LogManager.getLogger().info("Done in (" + timeCounter.getTimeFormat() + ")");
-        new ThreadFactoryBuilder().setNameFormat("Terminal reader #%d").setDaemon(true).build().newThread(tcpConsole::start).start();
+        new ThreadFactoryBuilder().setNameFormat("Terminal reader #%d").build().newThread(tcpConsole::start).start();
         ticker.start();
     }
 
@@ -124,6 +131,14 @@ public class ServerManager {
 
     public HealManager getHealManager() {
         return healManager;
+    }
+
+    public static ChannelStreamManager getChannelStreamManager() {
+        return instance.channelStreamManager;
+    }
+
+    public static boolean isDebug() {
+        return instance.debug;
     }
 }
 

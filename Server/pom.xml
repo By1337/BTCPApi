@@ -80,7 +80,20 @@
         </resources>
     </build>
 
+    <repositories>
+        <repository>
+            <id>by1337</id>
+            <url>https://by1337.space/repository/maven-releases/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
+        <dependency>
+            <groupId>org.by1337.blib.nbt</groupId>
+            <artifactId>BLib-Nbt</artifactId>
+            <version>1.0.7.1-beta</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>org.by1337.tcpapi.api</groupId>
             <artifactId>TCP-Api</artifactId>

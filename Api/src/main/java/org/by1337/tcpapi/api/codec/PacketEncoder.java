@@ -8,6 +8,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import org.by1337.tcpapi.api.PacketFlow;
 import org.by1337.tcpapi.api.io.ByteBuffer;
 import org.by1337.tcpapi.api.packet.Packet;
+import org.by1337.tcpapi.api.packet.impl.channel.ChanneledPacket;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,14 +33,17 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
     @Override
     protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf byteBuf) throws Exception {
         try {
-            if (packet.getType().getPacketFlow() != PacketFlow.ANY && packet.getType().getPacketFlow() != packetFlow){
+            if (packet.getType().getPacketFlow() != PacketFlow.ANY && packet.getType().getPacketFlow() != packetFlow) {
                 throw new EncoderException("Incorrect packet flow detected! " + packet);
             }
             ByteBuffer buf = new ByteBuffer(byteBuf);
-            buf.writeVarInt(packet.getType().getId());
-            packet.write(buf);
+            buf.writePacket(packet);
             if (debug) {
-                logger.info(packet.getClass().getSimpleName());
+                if (packet instanceof ChanneledPacket channeledPacket) {
+                    logger.info(packet.getClass().getSimpleName() + " packet=" + channeledPacket.getPacket().getClass().getSimpleName() + " channel=" + channeledPacket.getChannelID());
+                } else {
+                    logger.info(packet.getClass().getSimpleName());
+                }
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "failed to encode packet " + packet.getClass().getSimpleName(), e);

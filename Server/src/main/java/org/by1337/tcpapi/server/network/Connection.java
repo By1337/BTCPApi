@@ -12,6 +12,7 @@ import org.by1337.tcpapi.server.event.PacketReceivedEvent;
 import org.by1337.tcpapi.server.logger.MarkedLogger;
 
 import java.net.SocketAddress;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
@@ -93,6 +94,19 @@ public class Connection extends SimpleChannelInboundHandler<Packet> implements C
         if (channel.isOpen()) {
             channel.writeAndFlush(packet);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Connection that = (Connection) o;
+        return connected == that.connected && disconnected == that.disconnected && Objects.equals(address, that.address) && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(address, id, connected, disconnected);
     }
 
     public Channel getChannel() {
