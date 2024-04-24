@@ -11,30 +11,30 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 @PacketInfo.PacketFlowInfo(packetFlow = PacketFlow.SERVER_BOUND)
-public class FindPlayerResponsePacket extends Packet {
+public class PlayerDisconnectPacket extends Packet {
     private UUID player;
-    @Nullable
-    private String server;
-    public FindPlayerResponsePacket() {
-        super(VelocityPacketRegistry.FIND_PLAYER_RESPONSE_PACKET);
+    private @Nullable String fromServer;
+
+    public PlayerDisconnectPacket() {
+        super(VelocityPacketRegistry.PLAYER_DISCONNECT_PACKET);
     }
 
-    public FindPlayerResponsePacket(UUID player, @Nullable String server) {
+    public PlayerDisconnectPacket(UUID player, @Nullable String fromServer) {
         this();
         this.player = player;
-        this.server = server;
+        this.fromServer = fromServer;
     }
 
     @Override
     public void read(ByteBuffer byteBuf) throws IOException {
         player = byteBuf.readUUID();
-        server = byteBuf.readOptional(ByteBuffer::readUtf).orElse(null);
+        fromServer = byteBuf.readOptional(ByteBuffer::readUtf).orElse(null);
     }
 
     @Override
     public ByteBuffer write(ByteBuffer byteBuf) throws IOException {
         byteBuf.writeUUID(player);
-        byteBuf.writeOptional(server, ByteBuffer::writeUtf);
+        byteBuf.writeOptional(fromServer, ByteBuffer::writeUtf);
         return byteBuf;
     }
 
@@ -42,7 +42,15 @@ public class FindPlayerResponsePacket extends Packet {
         return player;
     }
 
-    public Optional<String> getServer() {
-        return Optional.ofNullable(server);
+    public Optional<String> getFromServer() {
+        return Optional.ofNullable(fromServer);
+    }
+
+    @Override
+    public String toString() {
+        return "PlayerDisconnectPacket{" +
+                "player=" + player +
+                ", fromServer='" + fromServer + '\'' +
+                '}';
     }
 }

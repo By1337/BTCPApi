@@ -15,7 +15,6 @@ public class PlayerConnectToServerEvent extends Event {
         this.player = player;
         this.server = server;
         this.previousServer = previousServer;
-        System.out.println("player " + player + " connected to " + server + " from " + previousServer);
     }
 
     public UUID getPlayer() {

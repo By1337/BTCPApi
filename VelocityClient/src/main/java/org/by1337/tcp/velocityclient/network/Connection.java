@@ -120,7 +120,7 @@ public class Connection extends SimpleChannelInboundHandler<Packet> {
         if (packet instanceof DisconnectPacket disconnectPacket) {
             disconnect(disconnectPacket.getReason());
         } else if (packet instanceof PacketPingRequest packetPingRequest) {
-            sendPacket(new PacketPingResponse(
+            channel.writeAndFlush(new PacketPingResponse(
                     (int) (System.currentTimeMillis() - packetPingRequest.getTime()),
                     packetPingRequest.getId()
             ));
@@ -205,6 +205,10 @@ public class Connection extends SimpleChannelInboundHandler<Packet> {
         if (channel.isOpen()) {
             channel.writeAndFlush(new ChanneledPacket(packet, CHANNEL_ID));
         }
+    }
+
+    public boolean isOpen() {
+        return channel != null && channel.isOpen();
     }
 
     public Logger getLogger() {

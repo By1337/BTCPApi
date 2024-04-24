@@ -55,7 +55,7 @@ public class ChannelStreamManager implements EventListener {
         return stream;
     }
     public Set<Client> getAllClientByChannel(SpacedNameKey channel){
-        return clientMap.computeIfAbsent(channel, k -> new HashSet<>());
+        return clientMap.getOrDefault(channel, new HashSet<>());
     }
 
     @Override
@@ -68,7 +68,7 @@ public class ChannelStreamManager implements EventListener {
                     serverWait.computeIfAbsent(registerChannel.getChannelID(), k -> new HashSet<>()).add(receivedEvent.getClient());
                     receivedEvent.getClient().sendPacket(new ChannelStatusPacket(registerChannel.getChannelID(), ChannelStatus.WAIT_SERVER));
                 } else {
-                    serverWait.computeIfAbsent(registerChannel.getChannelID(), k -> new HashSet<>()).add(receivedEvent.getClient());
+                    clientMap.computeIfAbsent(registerChannel.getChannelID(), k -> new HashSet<>()).add(receivedEvent.getClient());
                     receivedEvent.getClient().sendPacket(new ChannelStatusPacket(registerChannel.getChannelID(), ChannelStatus.OPENED));
                 }
             } else if (packet instanceof ClientUnregisterChannelStreamPacket unregister) {

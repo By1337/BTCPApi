@@ -106,7 +106,17 @@ public class Connection extends SimpleChannelInboundHandler<Packet> implements C
 
     @Override
     public int hashCode() {
-        return Objects.hash(address, id, connected, disconnected);
+        return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Connection{" +
+                "address=" + address +
+                ", id='" + id + '\'' +
+                ", connected=" + connected +
+                ", disconnected=" + disconnected +
+                '}';
     }
 
     public Channel getChannel() {

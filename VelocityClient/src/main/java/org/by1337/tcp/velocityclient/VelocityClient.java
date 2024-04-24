@@ -1,7 +1,8 @@
 package org.by1337.tcp.velocityclient;
 
 import com.google.inject.Inject;
-import com.velocitypowered.api.event.player.ServerConnectedEvent;
+import com.velocitypowered.api.event.connection.DisconnectEvent;
+import com.velocitypowered.api.event.player.*;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
@@ -10,11 +11,11 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.by1337.tcp.velocity.api.VelocityPacketRegistry;
 import org.by1337.tcp.velocity.api.packet.PlayerConnectToServerPacket;
+import org.by1337.tcp.velocity.api.packet.PlayerDisconnectPacket;
 import org.by1337.tcp.velocityclient.network.Connection;
 import org.by1337.tcp.velocityclient.util.Config;
 import org.slf4j.Logger;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
@@ -66,9 +67,20 @@ public class VelocityClient {
     public void on(ServerConnectedEvent event) {
         String server = cfg.getAssociations().getOrDefault(event.getServer().getServerInfo().getName(), event.getServer().getServerInfo().getName());
         String previousServer = event.getPreviousServer().map(registeredServer -> registeredServer.getServerInfo().getName()).orElse(null);
-        if (connection != null && !connection.isDisconnect()) {
+        if (connection != null && connection.isOpen()) {
             connection.sendPacket(new PlayerConnectToServerPacket(event.getPlayer().getUniqueId(), server,
                     previousServer == null ? null : cfg.getAssociations().getOrDefault(previousServer, previousServer)
+            ));
+        }
+    }
+
+    @Subscribe
+    public void on(DisconnectEvent event) {
+        var server = event.getPlayer().getCurrentServer().orElse(null);
+        if (connection != null && connection.isOpen()) {
+            connection.sendPacket(new PlayerDisconnectPacket(
+                    event.getPlayer().getUniqueId(),
+                    server == null ? null : cfg.getAssociations().getOrDefault(server.getServerInfo().getName(), server.getServerInfo().getName())
             ));
         }
     }

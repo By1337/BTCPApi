@@ -4,7 +4,9 @@ import org.by1337.tcpapi.api.packet.Packet;
 import org.by1337.tcpapi.api.packet.impl.channel.ChanneledPacket;
 import org.by1337.tcpapi.api.util.SpacedNameKey;
 import org.by1337.tcpapi.server.network.Client;
+import org.jetbrains.annotations.Contract;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public class ServerChannelStream {
@@ -29,7 +31,8 @@ public class ServerChannelStream {
     public SpacedNameKey getName() {
         return name;
     }
-    public void sendTo(Client client, Packet packet){
+
+    public void sendTo(Client client, Packet packet) {
         client.sendPacket(new ChanneledPacket(packet, name));
     }
 
@@ -39,5 +42,11 @@ public class ServerChannelStream {
 
     public Set<Client> getAllClients() {
         return manager.getAllClientByChannel(name);
+    }
+
+    @Contract("null -> false")
+    public boolean isConnected(@Nullable Client client) {
+        if (client == null) return false;
+        return getAllClients().contains(client);
     }
 }

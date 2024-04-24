@@ -33,7 +33,13 @@ public class PacketEncoder extends MessageToByteEncoder<Packet> {
     @Override
     protected void encode(ChannelHandlerContext ctx, Packet packet, ByteBuf byteBuf) throws Exception {
         try {
-            if (packet.getType().getPacketFlow() != PacketFlow.ANY && packet.getType().getPacketFlow() != packetFlow) {
+            PacketFlow flow;
+            if (packet instanceof ChanneledPacket channeledPacket) {
+                flow = channeledPacket.getType().getPacketFlow();
+            } else {
+                flow = packet.getType().getPacketFlow();
+            }
+            if (flow != PacketFlow.ANY && flow != packetFlow) {
                 throw new EncoderException("Incorrect packet flow detected! " + packet);
             }
             ByteBuffer buf = new ByteBuffer(byteBuf);

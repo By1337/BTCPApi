@@ -44,7 +44,13 @@ public class PacketDecoder extends ByteToMessageDecoder {
 
     private Packet read(ByteBuffer byteBuf) throws IOException {
         Packet packet = byteBuf.readPacket();
-        if (packet.getType().getPacketFlow() != PacketFlow.ANY && packet.getType().getPacketFlow() != packetFlow) {
+        PacketFlow flow;
+        if (packet instanceof ChanneledPacket channeledPacket) {
+            flow = channeledPacket.getType().getPacketFlow();
+        } else {
+            flow = packet.getType().getPacketFlow();
+        }
+        if (flow != PacketFlow.ANY && flow != packetFlow) {
             throw new DecoderException("Incorrect packet flow detected! " + packet);
         }
         if (debug) {
