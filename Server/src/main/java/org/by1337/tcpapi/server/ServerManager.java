@@ -16,11 +16,14 @@ import org.by1337.tcpapi.server.task.Ticker;
 import org.by1337.tcpapi.server.util.OptionParser;
 import org.by1337.tcpapi.server.util.TimeCounter;
 import org.by1337.tcpapi.server.velocity.VelocityManager;
+import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import java.io.File;
 import java.util.Objects;
 
 public class ServerManager {
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ServerManager.class);
     private static ServerManager instance;
     private final EventManager eventManager;
     private final Ticker ticker;
@@ -43,7 +46,6 @@ public class ServerManager {
         instance = this;
         TimeCounter timeCounter = new TimeCounter();
         healManager = new HealManager();
-        LogManager.soutHook();
         configManager = new ConfigManager();
         applyCfg();
         File dir = new File("./addons");
@@ -68,7 +70,7 @@ public class ServerManager {
         ticker.registerTask(new Task(true, 0, this::tick));
         addonInitializer.onEnable();
         // addonLoader.enableAll();
-        LogManager.getLogger().info("Done in (" + timeCounter.getTimeFormat() + ")");
+        LOGGER.info("Done in (" + timeCounter.getTimeFormat() + ")");
         new ThreadFactoryBuilder().setNameFormat("Terminal reader #%d").build().newThread(tcpConsole::start).start();
         ticker.start();
     }
@@ -122,6 +124,8 @@ public class ServerManager {
     }
 
     public static void main(String[] args) {
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
         OptionParser parser = new OptionParser(String.join(" ", args));
         String sPort = parser.get("port");
         Objects.requireNonNull(sPort, "missing port!");
@@ -129,7 +133,7 @@ public class ServerManager {
         String password = parser.get("pass");
         Objects.requireNonNull(password, "missing pass!");
         boolean debug = Boolean.parseBoolean(parser.getOrDefault("debug", "false"));
-        LogManager.getLogger().info("using: " + parser);
+        LOGGER.info("using: " + parser);
         new ServerManager(port, password, debug);
     }
 

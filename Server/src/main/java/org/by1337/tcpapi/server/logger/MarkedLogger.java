@@ -14,7 +14,7 @@ public class MarkedLogger extends Logger {
         super(clazz.getCanonicalName(), null);
         this.prefix = "[" + prefix + "] ";
         setLevel(Level.ALL);
-        setParent(LogManager.getLogger());
+        setParent(Logger.getGlobal());
     }
     @Override
     public void log(@NotNull LogRecord logRecord) {
