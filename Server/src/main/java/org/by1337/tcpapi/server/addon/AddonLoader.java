@@ -26,13 +26,23 @@ public class AddonLoader {
     private final Map<String, JavaAddon> addons = new ConcurrentHashMap<>();
     private final List<AddonClassLoader> loaders = new CopyOnWriteArrayList<>();
     private final List<URLClassLoader> libs = new CopyOnWriteArrayList<>();
+    private final AddonInitializer addonInitializer;
 
     public AddonLoader(@NotNull Logger logger, @NotNull File dir) {
         this.logger = logger;
         this.dir = dir;
+        addonInitializer = new AddonInitializer(this);
+        addonInitializer.process();
     }
 
     public void loadAddon(File file, AddonDescriptionFile description) throws IOException, InvalidAddonException {
+        if (addons.containsKey(description.getName())) {
+            var v = addons.get(description.getName());
+            throw new InvalidAddonException(
+                    "Duplicate! " + description.getName() + "-" + description.getVersion() + " & " +
+                            v.getName() + "-" + v.getDescription().getVersion()
+            );
+        }
         File dataFolder = new File(dir + "/" + description.getName());
 
         if (!dataFolder.exists()) {
@@ -45,9 +55,7 @@ public class AddonLoader {
     }
 
     public void onLoadPingAll() {
-        for (String s : addons.keySet()) {
-            onLoadPing(s);
-        }
+        addonInitializer.onLoad();
     }
 
     public void onLoadPing(String name) {
@@ -93,7 +101,7 @@ public class AddonLoader {
     }
 
     public void unloadAll() {
-        new ArrayList<>(addons.keySet()).forEach(this::unload);
+        addonInitializer.unload();
     }
 
     public void unload(String name) {
@@ -117,11 +125,11 @@ public class AddonLoader {
     }
 
     public void enableAll() {
-        addons.keySet().forEach(this::enable);
+        addonInitializer.onEnable();
     }
 
     public void disableAll() {
-        addons.keySet().forEach(this::disable);
+        addonInitializer.onDisable();
     }
 
     private void removeAddon(String name) {

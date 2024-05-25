@@ -3,7 +3,6 @@ package org.by1337.tcpapi.server;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.by1337.tcp.velocity.api.VelocityPacketRegistry;
 import org.by1337.tcpapi.api.event.EventManager;
-import org.by1337.tcpapi.server.addon.AddonInitializer;
 import org.by1337.tcpapi.server.addon.AddonLoader;
 import org.by1337.tcpapi.server.config.ConfigManager;
 import org.by1337.tcpapi.server.console.TcpConsole;
@@ -61,17 +60,13 @@ public class ServerManager {
 
         eventManager.registerListener(channelStreamManager);
         velocityManager = new VelocityManager(channelStreamManager, server);
-        AddonInitializer addonInitializer = new AddonInitializer(addonLoader);
-        addonInitializer.findAddons();
-        addonInitializer.process();
-        addonInitializer.onLoad();
-        //   addonLoader.onLoadPingAll();
+
+        addonLoader.onLoadPingAll();
         server.start(debug);
         ticker.registerTask(new Task(true, 0, this::tick));
-        addonInitializer.onEnable();
-        // addonLoader.enableAll();
+        addonLoader.enableAll();
         LOGGER.info("Done in (" + timeCounter.getTimeFormat() + ")");
-        new ThreadFactoryBuilder().setNameFormat("Terminal reader #%d").build().newThread(tcpConsole::start).start();
+        new ThreadFactoryBuilder().setNameFormat("terminal").build().newThread(tcpConsole::start).start();
         ticker.start();
     }
 

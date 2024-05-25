@@ -1,6 +1,9 @@
 package org.by1337.tcpapi.server.addon;
 
+import com.google.common.base.Joiner;
 import org.by1337.tcpapi.server.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,95 +11,116 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public class AddonInitializer {
+
+class AddonInitializer {
+    private final Logger logger = LoggerFactory.getLogger(AddonInitializer.class);
     private final AddonLoader addonLoader;
-    private List<Pair<File, AddonDescriptionFile>> toLoad;
+    private List<WeightedItem<Pair<File, AddonDescriptionFile>>> sorted = new ArrayList<>();
 
     public AddonInitializer(AddonLoader addonLoader) {
         this.addonLoader = addonLoader;
     }
 
     public void process() {
-        findAddons();
-        removeDuplicates();
-        checkDepend();
-        checkCyclicalDepend();
+        List<Pair<File, AddonDescriptionFile>> toLoad = findAddons();
+
         for (Pair<File, AddonDescriptionFile> pair : toLoad) {
+            sorted.add(new WeightedItem<>(pair));
+        }
+
+        Map<String, WeightedItem<Pair<File, AddonDescriptionFile>>> lookup = new HashMap<>();
+        for (var item : sorted) {
+            lookup.put(item.val.getRight().getName(), item);
+        }
+        boolean hasChange;
+        int x = 0;
+        do {
+            x++;
+            hasChange = false;
+            main:
+            for (var item : new ArrayList<>(sorted)) {
+                for (String string : item.val.getRight().getDepend()) {
+                    var v = lookup.get(string);
+                    if (v == null) {
+                        logger.error("Missing depend! plugin " + item.val.getRight().getName() + " depends[ " + Joiner.on(", ").join(item.val.getRight().getDepend()) + " ]");
+                        sorted.removeIf(i -> i == item);
+                        lookup.remove(item.val.getRight().getName());
+                    } else if (item.weight <= v.weight) {
+                        hasChange = true;
+                        item.weight = v.weight + 1;
+                        break main;
+                    }
+                }
+                for (String string : item.val.getRight().getSoftDepend()) {
+                    var v = lookup.get(string);
+                    if (v != null && item.weight <= v.weight) {
+                        hasChange = true;
+                        item.weight = v.weight + 1;
+                        break main;
+                    }
+                }
+            }
+            if (x > 2_000) {
+                List<AddonDescriptionFile> error = new ArrayList<>();
+                for (var item : new ArrayList<>(sorted)) {
+                    if (item.weight > 1_900) {
+                        error.add(item.val.getRight());
+                        sorted.removeIf(i -> i == item);
+                    }
+                }
+                logger.error("A cyclic relationship has been discovered between [" + Joiner.on(", ").join(
+                        error.stream().map(i -> String.format("{%s-%s %s, %s}", i.getName(), i.getVersion(), i.getDepend(), i.getSoftDepend())).toList()
+                ));
+                for (AddonDescriptionFile desc : error) {
+                    lookup.remove(desc.getName());
+                }
+                x = 0;
+            }
+        } while (hasChange);
+
+        for (WeightedItem<Pair<File, AddonDescriptionFile>> item : new ArrayList<>(sorted)) {
             try {
-                addonLoader.loadAddon(pair.getLeft(), pair.getRight());
+                addonLoader.loadAddon(item.val.getLeft(), item.val.getRight());
             } catch (IOException | InvalidAddonException e) {
-                addonLoader.getLogger().log(Level.SEVERE, "failed to load addon " + pair.getRight().getName(), e);
+                logger.error("failed to load addon " + item.val.getRight().getName(), e);
+                sorted.removeIf(i -> i == item);
             }
         }
     }
 
     public void onLoad() {
-        for (Pair<File, AddonDescriptionFile> pair : toLoad) {
-            addonLoader.onLoadPing(pair.getRight().getName());
+        for (WeightedItem<Pair<File, AddonDescriptionFile>> item : sorted) {
+            addonLoader.onLoadPing(item.val.getRight().getName());
         }
     }
 
     public void onEnable() {
-        // todo better sort through the collection
-        Map<String, Pair<File, AddonDescriptionFile>> map = new HashMap<>();
-        for (Pair<File, AddonDescriptionFile> pair : toLoad) {
-            map.put(pair.getRight().getName(), pair);
-        }
-        var list = toLoad.stream().map(Pair::getRight).collect(Collectors.toList());
-        while (!list.isEmpty()) {
-            var iterator = list.iterator();
-            main:
-            while (iterator.hasNext()) {
-                var addon = iterator.next();
-                if (addon.getDepend().isEmpty() && addon.getSoftDepend().isEmpty()) {
-                    addonLoader.enable(addon.getName());
-                    iterator.remove();
-                    continue;
-                }
-                if (!addon.getDepend().isEmpty()) {
-                    for (String s : addon.getDepend()) {
-                        if (!map.containsKey(s)) { // этого никогда не должно произойти...
-                            addonLoader.getLogger().log(Level.SEVERE, String.format("Failed to enable %s! Depend not found '%s'", addon.getName(), s), new Throwable());
-                            iterator.remove();
-                            addonLoader.unload(addon.getName());
-                            continue main;
-                        }
-                        Addon addon1 = addonLoader.getAddon(s);
-                        if (addon1 == null) {
-                            continue main;
-                        }
-                        if (!addon1.isEnabled()){
-                            if (addon1.isTryTyEnable()){
-                                addonLoader.getLogger().log(Level.SEVERE, String.format("Failed to enable %s! Depend not enabled '%s'", addon.getName(), s));
-                                iterator.remove();
-                            }
-                            continue main;
-                        }
-                    }
-                }
-                for (String s : addon.getSoftDepend()) {
-                    if (map.containsKey(s)){
-                        Addon addon1 = addonLoader.getAddon(s);
-                        if (addon1 != null) {
-                            if (!addon1.isEnabled() && !addon1.isTryTyEnable()){
-                                continue main;
-                            }
-                        }
-                    }
-                }
-                addonLoader.enable(addon.getName());
-                iterator.remove();
-            }
+        for (WeightedItem<Pair<File, AddonDescriptionFile>> item : sorted) {
+            addonLoader.enable(item.val.getRight().getName());
         }
     }
 
-    public void findAddons() {
-        if (!addonLoader.getDir().exists()) return;
+    public void onDisable() {
+        for (int i = sorted.size() - 1; i >= 0; i--) {
+            var v = sorted.get(i);
+            addonLoader.disable(v.val.getRight().getName());
+        }
+    }
+    public void unload() {
+        for (int i = sorted.size() - 1; i >= 0; i--) {
+            var v = sorted.get(i);
+            addonLoader.unload(v.val.getRight().getName());
+        }
+    }
+
+    public List<Pair<File, AddonDescriptionFile>> findAddons() {
+        List<Pair<File, AddonDescriptionFile>> toLoad = new ArrayList<>();
+        if (!addonLoader.getDir().exists()) return toLoad;
         File[] files = addonLoader.getDir().listFiles();
-        if (files == null) return;
+        if (files == null) return toLoad;
         toLoad = new ArrayList<>();
         for (File file : files) {
-            if (!file.getName().endsWith(".jar") && file.isDirectory()) continue;
+            if (!file.getName().endsWith(".jar") || file.isDirectory()) continue;
             try {
                 toLoad.add(new Pair<>(
                         file,
@@ -106,69 +130,15 @@ public class AddonInitializer {
                 addonLoader.getLogger().log(Level.SEVERE, "failed to read file " + file.getPath(), e);
             }
         }
+        return toLoad;
     }
 
-    public void removeDuplicates() {
-        Map<String, List<Pair<File, AddonDescriptionFile>>> files = new HashMap<>();
+    private static class WeightedItem<T> {
+        private int weight = 0;
+        private final T val;
 
-        for (Pair<File, AddonDescriptionFile> pair : toLoad) {
-            files.computeIfAbsent(pair.getRight().getName(), k -> new ArrayList<>()).add(pair);
+        public WeightedItem(T val) {
+            this.val = val;
         }
-        List<Pair<File, AddonDescriptionFile>> result = new ArrayList<>();
-        for (String name : files.keySet()) {
-            var list = files.get(name);
-            if (list.size() > 1) {
-                StringBuilder message = new StringBuilder("Duplicates detected:");
-                for (Pair<File, AddonDescriptionFile> pair : list) {
-                    message.append(" ").append(pair.getRight().getName()).append(" ").append(pair.getRight().getVersion());
-                    message.append("in '").append(pair.getLeft().getPath()).append("'");
-                }
-                addonLoader.getLogger().severe(message.toString());
-            }
-            result.add(list.get(0));
-        }
-        toLoad = result;
     }
-
-    public void checkDepend() {
-        Set<String> addons = new HashSet<>();
-        for (Pair<File, AddonDescriptionFile> pair : toLoad) {
-            addons.add(pair.getRight().getName());
-        }
-        List<Pair<File, AddonDescriptionFile>> result = new ArrayList<>();
-        for (Pair<File, AddonDescriptionFile> pair : toLoad) {
-            for (String s : pair.getRight().getDepend()) {
-                if (!addons.contains(s)) {
-                    addonLoader.getLogger().severe(String.format("Failed to load %s! Depend not found '%s'", pair.getRight().getName(), s));
-                    continue;
-                }
-            }
-            result.add(pair);
-        }
-        toLoad = result;
-    }
-
-    public void checkCyclicalDepend() {
-        Map<String, Pair<File, AddonDescriptionFile>> map = new HashMap<>();
-
-        for (Pair<File, AddonDescriptionFile> pair : toLoad) {
-            map.put(pair.getRight().getName(), pair);
-        }
-        List<Pair<File, AddonDescriptionFile>> result = new ArrayList<>();
-
-        main:
-        for (String name : map.keySet()) {
-            var pair = map.get(name);
-            for (String s : pair.getRight().getDepend()) {
-                var depend = map.get(s);
-                if (depend.getRight().getDepend().contains(name)) {
-                    addonLoader.getLogger().severe(String.format("A cyclic depend was found between %s and %s", name, s));
-                    continue main;
-                }
-            }
-            result.add(pair);
-        }
-        toLoad = result;
-    }
-
 }
