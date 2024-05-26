@@ -25,7 +25,6 @@ public class Validate {
     @NotNull
     public static <T> T notNull(@Nullable T obj, @NotNull String message, @NotNull Object... objects) {
         return notNull(obj, String.format(message, objects));
-
     }
     @CanIgnoreReturnValue
     @NotNull

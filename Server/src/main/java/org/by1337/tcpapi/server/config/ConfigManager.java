@@ -24,7 +24,7 @@ public class ConfigManager {
            throw new RuntimeException(e);
        }
 
-       nettyThreads = config.getAsInt("netty-threads");
+       nettyThreads = config.get("netty-threads").getAsInteger();
 
     }
 

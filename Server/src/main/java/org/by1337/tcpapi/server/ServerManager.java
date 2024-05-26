@@ -128,7 +128,6 @@ public class ServerManager {
         String password = parser.get("pass");
         Objects.requireNonNull(password, "missing pass!");
         boolean debug = Boolean.parseBoolean(parser.getOrDefault("debug", "false"));
-        LOGGER.info("using: " + parser);
         new ServerManager(port, password, debug);
     }
 

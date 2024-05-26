@@ -77,7 +77,7 @@ class AddonInitializer {
                 x = 0;
             }
         } while (hasChange);
-
+        sorted.sort(Comparator.comparingInt(o -> o.weight));
         for (WeightedItem<Pair<File, AddonDescriptionFile>> item : new ArrayList<>(sorted)) {
             try {
                 addonLoader.loadAddon(item.val.getLeft(), item.val.getRight());

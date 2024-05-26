@@ -4,19 +4,23 @@ import org.by1337.tcpapi.server.util.Validate;
 import org.by1337.tcpapi.server.yaml.adapter.AdapterRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class YamlContext {
     private LinkedHashMap<String, Object> raw;
+
+    public YamlContext(LinkedHashMap<String, Object> raw) {
+        this.raw = raw;
+    }
 
     public YamlContext() {
         raw = new LinkedHashMap<>();
@@ -36,123 +40,97 @@ public class YamlContext {
         this(Files.readString(file.toPath()));
     }
 
+    public void set(@NotNull String path, @Nullable Object obj) {
+        Validate.notNull(path, "path is null!");
+        Validate.test(path, String::isBlank, () -> new IllegalStateException("path is empty"));
 
-    public String getAsString(@NotNull String path, String def) {
-        return AdapterRegistry.getAs(get(path, def), String.class);
+        String[] pathParts = path.split("\\.");
+        Map<String, Object> currentMap = raw;
+
+        for (int i = 0; i < pathParts.length; i++) {
+            String key = pathParts[i];
+
+            if (i == pathParts.length - 1) {
+                currentMap.put(key, processObject(obj));
+            } else {
+                Object value = currentMap.get(key);
+                if (value instanceof Map) {
+                    currentMap = (Map<String, Object>) value;
+                } else if (value == null) {
+                    Map<String, Object> newMap = new HashMap<>();
+                    currentMap.put(key, newMap);
+                    currentMap = newMap;
+                } else {
+                    throw new ClassCastException("Cannot cast " + value.getClass().getName() + " to Map<String, Object>");
+                }
+            }
+        }
     }
 
-    @Nullable
-    public String getAsString(@NotNull String path) {
-        return AdapterRegistry.getAs(get(path), String.class);
-    }
-
-    public Number getAsNumber(@NotNull String path, Number def) {
-        return AdapterRegistry.getAs(get(path, def), Number.class);
-    }
-
-    @Nullable
-    public Number getAsNumber(@NotNull String path) {
-        return AdapterRegistry.getAs(get(path), Number.class);
-    }
-
-    public Byte getAsByte(@NotNull String path, Byte def) {
-        return AdapterRegistry.getAs(get(path, def), Byte.class);
-    }
-
-    @Nullable
-    public Byte getAsByte(@NotNull String path) {
-        return AdapterRegistry.getAs(get(path), Byte.class);
-    }
-
-    public Short getAsShort(@NotNull String path, Short def) {
-        return AdapterRegistry.getAs(get(path, def), Short.class);
-    }
-
-    @Nullable
-    public Short getAsShort(@NotNull String path) {
-        return AdapterRegistry.getAs(get(path), Short.class);
+    private Object processObject(Object obj) {
+        if (obj instanceof Collection<?> collection) {
+            return collection.stream().map(AdapterRegistry::serialize).toList();
+        } else if (obj instanceof Map<?, ?> map) {
+            Map<Object, Object> processedMap = new HashMap<>();
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                processedMap.put(AdapterRegistry.serialize(entry.getKey()), AdapterRegistry.serialize(entry.getValue()));
+            }
+            return processedMap;
+        } else {
+            return AdapterRegistry.serialize(obj);
+        }
     }
 
     @NotNull
-    public Integer getAsInt(@NotNull String path, Integer def) {
-        return AdapterRegistry.getAs(get(path, def), Integer.class);
-    }
-
-    @Nullable
-    public Integer getAsInt(@NotNull String path) {
-        return AdapterRegistry.getAs(get(path), Integer.class);
-    }
-
-    public Long getAsLong(@NotNull String path, Long def) {
-        return AdapterRegistry.getAs(get(path, def), Long.class);
-    }
-
-    @Nullable
-    public Long getAsLong(@NotNull String path) {
-        return AdapterRegistry.getAs(get(path), Long.class);
-    }
-
-    public Double getAsDouble(@NotNull String path, Double def) {
-        return AdapterRegistry.getAs(get(path, def), Double.class);
-    }
-
-    @Nullable
-    public Double getAsDouble(@NotNull String path) {
-        return AdapterRegistry.getAs(get(path), Double.class);
-    }
-
-    public Float getAsFloat(@NotNull String path, Float def) {
-        return AdapterRegistry.getAs(get(path, def), Float.class);
-    }
-
-    @Nullable
-    public Float getAsFloat(@NotNull String path) {
-        return AdapterRegistry.getAs(get(path), Float.class);
-    }
-
-    @Nullable
-    public <T> List<T> getList(@NotNull String path, @NotNull Class<T> type) {
-        List<T> out = new ArrayList<>();
-        List<?> raw = (List<?>) get(path);
-        if (raw == null) return null;
-        for (Object o : raw) {
-            out.add(AdapterRegistry.getAs(o, type));
-        }
-        return out;
-    }
-    @Nullable
-    public List<String> getListString(@NotNull String path){
-        return getList(path, String.class);
-    }
-
-    public Object get(@NotNull String path, Object def) {
+    public YamlValue get(@NotNull String path, Object def) {
         var obj = get(path);
-        return obj == null ? def : obj;
+        return obj.getValue() == null ? new YamlValue(def) : obj;
     }
 
-    @Nullable
-    public Object get(@NotNull String path) {
+    @NotNull
+    public YamlValue get(@NotNull String path) {
         Validate.notNull(path, "path is null!");
-        Validate.test(path, String::isEmpty, () -> new IllegalStateException("path is empty"));
+        Validate.test(path, String::isBlank, () -> new IllegalStateException("path is empty"));
         String[] path0 = path.split("\\.");
 
         Object last = null;
         for (String s : path0) {
             if (last == null) {
                 Object o = raw.get(s);
-                if (o == null) return null;
+                if (o == null) return YamlValue.EMPTY;
                 last = o;
             } else if (last instanceof Map<?, ?> sub) {
                 Object o = sub.get(s);
-                if (o == null) return null;
+                if (o == null) return YamlValue.EMPTY;
                 last = o;
             } else {
                 throw new ClassCastException(last.getClass().getName() + " to Map<String, Object>");
             }
         }
-        return last;
+        return new YamlValue(last);
     }
 
+    public String saveToString() {
+        DumperOptions options = new DumperOptions();
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        Yaml yaml = new Yaml(options);
+        StringWriter writer = new StringWriter();
+        yaml.dump(raw, writer);
+        return writer.toString();
+    }
+
+    public void saveToFile(String fileName) throws IOException {
+        DumperOptions options = new DumperOptions();
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        Yaml yaml = new Yaml(options);
+        try (FileWriter writer = new FileWriter(fileName)) {
+            yaml.dump(raw, writer);
+        }
+    }
+
+    public LinkedHashMap<String, Object> getRaw() {
+        return raw;
+    }
 
     public static class YamlParserException extends Exception {
         public YamlParserException() {

@@ -1,12 +1,19 @@
 package org.by1337.tcpapi.server.yaml.adapter;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import org.by1337.tcpapi.api.util.NameKey;
+import org.by1337.tcpapi.api.util.SpacedNameKey;
 import org.by1337.tcpapi.server.util.Validate;
+import org.by1337.tcpapi.server.yaml.YamlContext;
+import org.by1337.tcpapi.server.yaml.adapter.impl.AdapterEnum;
+import org.by1337.tcpapi.server.yaml.adapter.impl.AdapterNumber;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.UUID;
 
 public class AdapterRegistry {
     private static final HashMap<Class<?>, Adapter<?>> adapters;
@@ -30,15 +37,38 @@ public class AdapterRegistry {
     }
 
     @Contract("null, _ -> null")
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> T getAs(@Nullable Object o, @NotNull Class<T> clazz) {
         if (o == null) return null;
         if (clazz.isAssignableFrom(o.getClass())) {
             return clazz.cast(o);
         }
-        Validate.notNull(clazz);
+        Validate.notNull(clazz, "class is null!");
         Adapter<T> adapter = (Adapter<T>) adapters.get(clazz);
+        if (adapter == null) {
+            if (clazz.isEnum()) {
+                AdapterEnum adapterEnum = new AdapterEnum(clazz);
+                adapters.put(clazz, adapterEnum);
+                return (T) adapterEnum.deserialize(o);
+            }
+        }
+        Validate.notNull(adapter, "Has no adapter for %s class!", clazz);
         return adapter.deserialize(o);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T> Object serialize(T o) {
+        if (o == null) return null;
+        Adapter<T> adapter = (Adapter<T>) adapters.get(o.getClass());
+        if (adapter == null) {
+            if (o.getClass().isEnum()) {
+                AdapterEnum adapterEnum = new AdapterEnum(o.getClass());
+                adapters.put(o.getClass(), adapterEnum);
+                return adapterEnum.serialize((Enum) o);
+            }
+        }
+        Validate.notNull(adapter, "Has no adapter for %s class!", o.getClass());
+        return adapter.serialize(o);
     }
 
     public static boolean hasAdapter(Class<?> adapterClass) {
@@ -49,15 +79,43 @@ public class AdapterRegistry {
         adapters = new HashMap<>();
 
         registerAdapter(Object.class, new AdapterBuilder<>().build());
-        registerAdapter(String.class, new AdapterBuilder<String>().serialize(s -> s).deserialize(String::valueOf).build());
+        registerAdapter(String.class, new AdapterBuilder<String>().deserialize(String::valueOf).build());
 
-        registerAdapter(Number.class, new AdapterBuilder<Number>().serialize(s -> s).deserialize(o -> Double.parseDouble(String.valueOf(o))).build());
-        registerAdapter(Byte.class, new AdapterBuilder<Byte>().serialize(s -> s).deserialize(o -> getAs(o, Number.class).byteValue()).build());
-        registerAdapter(Short.class, new AdapterBuilder<Short>().serialize(s -> s).deserialize(o -> getAs(o, Number.class).shortValue()).build());
-        registerAdapter(Integer.class, new AdapterBuilder<Integer>().serialize(s -> s).deserialize(o -> getAs(o, Number.class).intValue()).build());
-        registerAdapter(Long.class, new AdapterBuilder<Long>().serialize(s -> s).deserialize(o -> getAs(o, Number.class).longValue()).build());
-        registerAdapter(Double.class, new AdapterBuilder<Double>().serialize(s -> s).deserialize(o -> getAs(o, Number.class).doubleValue()).build());
-        registerAdapter(Float.class, new AdapterBuilder<Float>().serialize(s -> s).deserialize(o -> getAs(o, Number.class).floatValue()).build());
+        registerAdapter(Number.class, new AdapterNumber<>(n -> n, Double::parseDouble));
+        registerAdapter(Byte.class, new AdapterNumber<>(Number::byteValue, Byte::parseByte));
+        registerAdapter(Short.class, new AdapterNumber<>(Number::shortValue, Short::parseShort));
+        registerAdapter(Integer.class, new AdapterNumber<>(Number::intValue, Integer::parseInt));
+        registerAdapter(Long.class, new AdapterNumber<>(Number::longValue, Long::parseLong));
+        registerAdapter(Double.class, new AdapterNumber<>(Number::doubleValue, Double::parseDouble));
+        registerAdapter(Float.class, new AdapterNumber<>(Number::floatValue, Float::parseFloat));
+
+        registerAdapter(Boolean.class, new AdapterBuilder<Boolean>().deserialize(o -> {
+            if (o instanceof Boolean b) return b;
+            return Boolean.parseBoolean(String.valueOf(o));
+        }).build());
+
+        registerAdapter(NameKey.class, new AdapterBuilder<NameKey>()
+                .serialize(NameKey::getName)
+                .deserialize(o -> new NameKey(getAs(o, String.class))).build());
+
+        registerAdapter(SpacedNameKey.class, new AdapterBuilder<SpacedNameKey>()
+                .serialize(s -> s.getSpace().getName() + ":" + s.getName().getName())
+                .deserialize(o -> {
+                    String[] str = String.valueOf(o).split(":");
+                    return new SpacedNameKey(new NameKey(str[0]), new NameKey(str[1]));
+                })
+                .build());
+
+        registerAdapter(UUID.class, new AdapterBuilder<UUID>()
+                .serialize(UUID::toString)
+                .deserialize(o -> UUID.fromString(String.valueOf(o)))
+                .build());
+
+        registerAdapter(YamlContext.class, new AdapterBuilder<YamlContext>()
+                .serialize(YamlContext::getRaw)
+                .deserialize(o -> new YamlContext((LinkedHashMap<String, Object>) o))
+                .build());
+
 
     }
 }
