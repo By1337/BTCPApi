@@ -1,4 +1,4 @@
-name: TcpClient
+name: BTcpClient
 version: '${project.version}'
 main: org.by1337.tcpapi.client.Plugin
 api-version: '1.16'

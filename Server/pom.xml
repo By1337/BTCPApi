@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.by1337.tcpapi</groupId>
-        <artifactId>TCPApi</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <artifactId>BTCPApi</artifactId>
+        <version>1.0</version>
     </parent>
 
     <groupId>org.by1337.tcpapi.server</groupId>
-    <artifactId>TcpServer</artifactId>
+    <artifactId>BTcpServer</artifactId>
     <version>1.0</version>
 
     <properties>
