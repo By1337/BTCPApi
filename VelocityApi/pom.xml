@@ -3,29 +3,16 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.by1337.tcpapi</groupId>
-        <artifactId>BTCPApi</artifactId>
+        <artifactId>BTCP-parent</artifactId>
         <version>1.0</version>
     </parent>
     <groupId>org.by1337.tcp.velocity.api</groupId>
-    <artifactId>VelocityApi</artifactId>
+    <artifactId>BVelocityApi</artifactId>
     <properties>
         <java.version>16</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <distributionManagement>
-        <repository>
-            <id>by1337.space</id>
-            <name>releases</name>
-            <url>https://by1337.space/repository/maven-releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>by1337.space</id>
-            <name>snapshots</name>
-            <url>https://by1337.space/repository/maven-snapshots/</url>
-        </snapshotRepository>
-
-    </distributionManagement>
     <build>
         <plugins>
             <plugin>
@@ -61,6 +48,9 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <generateUniqueDependencyReducedPom>false</generateUniqueDependencyReducedPom>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -84,12 +74,12 @@
         <dependency>
             <groupId>org.by1337.blib.nbt</groupId>
             <artifactId>BLib-Nbt</artifactId>
-            <version>1.0.7.1-beta</version>
+            <version>1.0.8.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.by1337.tcpapi.api</groupId>
-            <artifactId>TCP-Api</artifactId>
+            <artifactId>BTCP-Api</artifactId>
             <version>1.0</version>
             <scope>provided</scope>
         </dependency>

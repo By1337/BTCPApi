@@ -4,16 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.by1337.block.registry</groupId>
+    <groupId>org.by1337.tcpapi.velocityclient</groupId>
     <artifactId>BVelocityClient</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>VelocityClient</name>
+    <name>BVelocityClient</name>
 
     <parent>
         <groupId>org.by1337.tcpapi</groupId>
-        <artifactId>BTCPApi</artifactId>
+        <artifactId>BTCP-parent</artifactId>
         <version>1.0</version>
     </parent>
 
@@ -57,6 +57,9 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <generateUniqueDependencyReducedPom>false</generateUniqueDependencyReducedPom>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -105,14 +108,14 @@
         </dependency>
         <dependency>
             <groupId>org.by1337.tcpapi.api</groupId>
-            <artifactId>TCP-Api</artifactId>
+            <artifactId>BTCP-Api</artifactId>
             <version>1.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.by1337.blib.nbt</groupId>
             <artifactId>BLib-Nbt</artifactId>
-            <version>1.0.7.1-beta</version>
+            <version>1.0.8.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -142,7 +145,7 @@
         </dependency>
         <dependency>
             <groupId>org.by1337.tcp.velocity.api</groupId>
-            <artifactId>VelocityApi</artifactId>
+            <artifactId>BVelocityApi</artifactId>
             <version>1.0</version>
             <scope>compile</scope>
         </dependency>

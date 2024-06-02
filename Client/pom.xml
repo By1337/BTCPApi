@@ -9,11 +9,11 @@
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>Client</name>
+    <name>BTcpClient</name>
 
     <parent>
         <groupId>org.by1337.tcpapi</groupId>
-        <artifactId>BTCPApi</artifactId>
+        <artifactId>BTCP-parent</artifactId>
         <version>1.0</version>
     </parent>
 
@@ -21,19 +21,6 @@
         <java.version>16</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <distributionManagement>
-        <repository>
-            <id>by1337.space</id>
-            <name>releases</name>
-            <url>https://by1337.space/repository/maven-releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>by1337.space</id>
-            <name>snapshots</name>
-            <url>https://by1337.space/repository/maven-snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <build>
         <plugins>
@@ -70,6 +57,9 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <generateUniqueDependencyReducedPom>false</generateUniqueDependencyReducedPom>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -112,7 +102,7 @@
         </dependency>
         <dependency>
             <groupId>org.by1337.tcpapi.api</groupId>
-            <artifactId>TCP-Api</artifactId>
+            <artifactId>BTCP-Api</artifactId>
             <version>1.0</version>
             <scope>compile</scope>
         </dependency>
